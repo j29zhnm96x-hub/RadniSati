@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.1.1";
+  var APP_VERSION = "0.2.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -14,6 +14,10 @@
   var formatters = {};
   var darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
   var elements = {};
+  var liveTimer = null;
+  var liveDate = null;
+  var updateState = { available: null, statusKey: null, busy: false };
+  var UPDATE_DISMISS_KEY = "radni-sati:update-dismissed";
 
   function byId(id) {
     return document.getElementById(id);
@@ -26,6 +30,9 @@
       "todayBaseDetail", "todayBase", "todayAllowanceRow", "todayAllowance",
       "todayTravelValue", "todayOtherValue", "todayPreviewTotal", "todayTotal",
       "todayHeroFormula", "todayDelete", "todaySave",
+      "liveCard", "liveAmount", "liveHint", "liveClock", "liveState", "liveProgressBar",
+      "livePlanMinus", "livePlanPlus", "livePlanValue",
+      "updateBanner", "updateBannerText", "updateBannerApply", "updateBannerDismiss",
       "historyEmpty", "historyGroups",
       "monthPrev", "monthNext", "monthLabel", "monthTotal", "monthFormula", "monthDays",
       "monthHours", "monthBase", "monthAllowance", "monthTravel", "monthOther",
@@ -34,6 +41,9 @@
       "rateAmountError", "rateDate", "rateDateError", "rateHistoryList", "rateHistoryEmpty",
       "allowanceToggle", "allowanceAmount", "allowanceError", "themeControl",
       "languageControl", "exportBtn", "importBtn", "importFile", "clearBtn", "appVersion",
+      "workStartInput", "plannedHoursInput",
+      "updateCurrentVersion", "checkUpdateBtn", "updateStatus", "updateAvailable",
+      "updateAvailableText", "updateNowBtn",
       "dayDialog", "editorForm", "editorTitle", "editorRate", "editorClose", "editorHours",
       "editorHoursError", "editorTravel", "editorTravelError", "editorOther",
       "editorOtherError", "editorNote", "editorBaseDetail", "editorBase",
@@ -85,6 +95,12 @@
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
+    formatters.liveCurrency = new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "EUR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 3
+    });
     formatters.number = new Intl.NumberFormat(locale, {
       maximumFractionDigits: 2
     });
@@ -123,6 +139,11 @@
   function formatCurrency(value) {
     var numeric = typeof value === "number" && isFinite(value) ? value : 0;
     return formatters.currency.format(numeric);
+  }
+
+  function formatLiveCurrency(value) {
+    var numeric = typeof value === "number" && isFinite(value) ? value : 0;
+    return formatters.liveCurrency.format(numeric);
   }
 
   function formatNumber(value) {
@@ -222,6 +243,97 @@
     return false;
   }
 
+  function planFor(dateISO) {
+    if (Object.prototype.hasOwnProperty.call(data.plans, dateISO)) {
+      return data.plans[dateISO];
+    }
+    return data.settings.plannedHours;
+  }
+
+  function liveSnapshot(now) {
+    var parts = data.settings.workStart.split(":");
+    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), Number(parts[0]), Number(parts[1]), 0, 0);
+    var dateISO = isoFromDate(now);
+    var plan = planFor(dateISO);
+    var rate = effectiveRate(dateISO);
+    var planMs = plan * 3600000;
+    var elapsedMs = now.getTime() - start.getTime();
+    var workedMs = Math.max(0, Math.min(elapsedMs, planMs));
+    var state = "running";
+    if (plan <= 0) {
+      state = "off";
+    } else if (elapsedMs < 0) {
+      state = "before";
+    } else if (elapsedMs >= planMs) {
+      state = "finished";
+    }
+    return {
+      plan: plan,
+      rate: rate,
+      amount: (workedMs / 3600000) * rate,
+      progress: planMs > 0 ? Math.max(0, Math.min(1, elapsedMs / planMs)) : 0,
+      state: state
+    };
+  }
+
+  function renderLiveCard(now) {
+    if (!data || !elements.liveCard) return;
+    var time = now || new Date();
+    var snapshot = liveSnapshot(time);
+    var hasRate = snapshot.rate > 0;
+
+    elements.liveClock.textContent = pad2(time.getHours()) + ":" + pad2(time.getMinutes()) + ":" + pad2(time.getSeconds());
+    elements.liveAmount.hidden = !hasRate;
+    elements.liveHint.hidden = hasRate;
+    if (hasRate) elements.liveAmount.textContent = formatLiveCurrency(snapshot.amount);
+
+    var stateText = "";
+    if (snapshot.state === "off") {
+      stateText = i18n.t("liveDayOff");
+    } else if (snapshot.state === "before") {
+      stateText = i18n.t("liveStartsAt", { time: data.settings.workStart });
+    } else if (snapshot.state === "finished") {
+      stateText = i18n.t("liveFinished");
+    } else {
+      stateText = i18n.t("liveRunning");
+    }
+    elements.liveState.textContent = stateText;
+    elements.liveProgressBar.style.width = (snapshot.progress * 100) + "%";
+    elements.livePlanValue.textContent = i18n.t("livePlanValue", { hours: formatNumber(snapshot.plan) });
+    elements.livePlanMinus.disabled = snapshot.plan <= 0;
+    elements.livePlanPlus.disabled = snapshot.plan >= 24;
+  }
+
+  function changePlanHours(delta) {
+    var iso = todayISO();
+    var current = planFor(iso);
+    var next = Math.max(0, Math.min(24, Math.round((current + delta) * 4) / 4));
+    if (next === current) return;
+    data.plans[iso] = next;
+    persist();
+    renderLiveCard(new Date());
+  }
+
+  function tickLive() {
+    if (!data) return;
+    var now = new Date();
+    var iso = isoFromDate(now);
+    if (liveDate && liveDate !== iso) {
+      liveDate = iso;
+      renderToday(true);
+      return;
+    }
+    liveDate = iso;
+    if (document.hidden || currentView !== "today") return;
+    renderLiveCard(now);
+  }
+
+  function startLiveClock() {
+    if (liveTimer) return;
+    liveDate = todayISO();
+    liveTimer = window.setInterval(tickLive, 1000);
+  }
+
   function applyTheme() {
     var theme = data.settings.theme;
     if (theme === "auto") {
@@ -256,6 +368,10 @@
     i18n.apply(document);
     updateQuickChipLabels();
     updateDocumentTitle();
+    if (updateState.available && !elements.updateBanner.hidden) {
+      showUpdateBanner(updateState.available);
+    }
+    if (updateState.statusKey) setUpdateStatus(updateState.statusKey);
   }
 
   function showView(name, options) {
@@ -466,6 +582,7 @@
       updateTodayEntryControls();
       updateTodayPreview();
     }
+    renderLiveCard(new Date());
   }
 
   function createHistoryChevron() {
@@ -634,6 +751,156 @@
     return svg;
   }
 
+  function parseVersion(value) {
+    var match = /^(\d+)\.(\d+)\.(\d+)$/.exec(String(value == null ? "" : value).trim());
+    if (!match) return null;
+    return [Number(match[1]), Number(match[2]), Number(match[3])];
+  }
+
+  function compareVersions(left, right) {
+    var a = parseVersion(left);
+    var b = parseVersion(right);
+    if (!a || !b) return 0;
+    for (var i = 0; i < 3; i += 1) {
+      if (a[i] > b[i]) return 1;
+      if (a[i] < b[i]) return -1;
+    }
+    return 0;
+  }
+
+  function dismissedVersion() {
+    try {
+      return window.localStorage.getItem(UPDATE_DISMISS_KEY) || "";
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function showUpdateBanner(version) {
+    elements.updateBannerText.textContent = i18n.t("updateBanner", { version: version });
+    elements.updateBanner.hidden = false;
+  }
+
+  function dismissUpdate() {
+    if (updateState.available) {
+      try {
+        window.localStorage.setItem(UPDATE_DISMISS_KEY, updateState.available);
+      } catch (error) {
+        /* Dismissal is best-effort when storage is unavailable. */
+      }
+    }
+    elements.updateBanner.hidden = true;
+  }
+
+  function setUpdateStatus(key) {
+    updateState.statusKey = key || null;
+    if (!key) {
+      elements.updateStatus.hidden = true;
+      elements.updateStatus.textContent = "";
+      return;
+    }
+    elements.updateStatus.textContent = i18n.t(key);
+    elements.updateStatus.hidden = false;
+  }
+
+  function renderUpdateState() {
+    elements.updateCurrentVersion.textContent = "v" + APP_VERSION;
+    elements.appVersion.textContent = "v" + APP_VERSION;
+    var available = updateState.available;
+    elements.updateAvailable.hidden = !available;
+    if (available) {
+      elements.updateAvailableText.textContent = i18n.t("updateAvailable", { version: available });
+    }
+  }
+
+  function setCheckBusy(busy) {
+    elements.checkUpdateBtn.disabled = busy || updateState.busy;
+    elements.checkUpdateBtn.textContent = i18n.t(busy ? "checkingUpdates" : "checkUpdates");
+  }
+
+  function setUpdateBusy(busy) {
+    updateState.busy = busy;
+    elements.checkUpdateBtn.disabled = busy;
+    elements.updateNowBtn.disabled = busy;
+    elements.updateBannerApply.disabled = busy;
+    elements.updateBannerDismiss.disabled = busy;
+    elements.updateNowBtn.textContent = i18n.t(busy ? "updating" : "updateNow");
+    elements.updateBannerApply.textContent = i18n.t(busy ? "updating" : "updateNowShort");
+    elements.updateNowBtn.setAttribute("aria-busy", busy ? "true" : "false");
+    elements.updateBannerApply.setAttribute("aria-busy", busy ? "true" : "false");
+    if (busy) elements.checkUpdateBtn.textContent = i18n.t("checkingUpdates");
+  }
+
+  function checkForUpdate(options) {
+    var settings = options || {};
+    var silent = Boolean(settings.silent);
+    if (updateState.busy) return Promise.resolve(false);
+
+    if (!navigator.onLine) {
+      if (!silent) setUpdateStatus("updateOffline");
+      return Promise.resolve(false);
+    }
+
+    if (!silent) {
+      setUpdateStatus(null);
+      setCheckBusy(true);
+    }
+
+    return fetch("./version.json?ts=" + Date.now(), { cache: "no-store" }).then(function (response) {
+      if (!response || !response.ok) throw new Error("version request failed");
+      return response.json();
+    }).then(function (payload) {
+      var remote = payload && typeof payload.version === "string" ? payload.version.trim() : "";
+      if (!parseVersion(remote)) throw new Error("invalid version payload");
+
+      if (compareVersions(remote, APP_VERSION) > 0) {
+        updateState.available = remote;
+        renderUpdateState();
+        if (!silent) setUpdateStatus(null);
+        if (dismissedVersion() !== remote) showUpdateBanner(remote);
+      } else {
+        updateState.available = null;
+        renderUpdateState();
+        elements.updateBanner.hidden = true;
+        if (!silent) setUpdateStatus("updateUpToDate");
+      }
+      return true;
+    }).catch(function () {
+      if (!silent) setUpdateStatus(navigator.onLine ? "updateCheckFailed" : "updateOffline");
+      return false;
+    }).then(function (result) {
+      if (!silent) setCheckBusy(false);
+      return result;
+    });
+  }
+
+  function performUpdate() {
+    if (updateState.busy) return;
+    setUpdateBusy(true);
+
+    var tasks = [];
+    if ("serviceWorker" in navigator) {
+      tasks.push(navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        return Promise.all(registrations.map(function (registration) {
+          return registration.unregister().catch(function () { return false; });
+        }));
+      }).catch(function () { return false; }));
+    }
+    if (window.caches && typeof window.caches.keys === "function") {
+      tasks.push(window.caches.keys().then(function (keys) {
+        return Promise.all(keys.map(function (key) {
+          return window.caches.delete(key).catch(function () { return false; });
+        }));
+      }).catch(function () { return false; }));
+    }
+
+    Promise.all(tasks).then(function () {
+      var url = new URL(window.location.href);
+      url.searchParams.set("v", String(Date.now()));
+      window.location.replace(url.toString());
+    });
+  }
+
   function renderSettings() {
     var rates = data.settings.rates;
     var current = effectiveRate(todayISO());
@@ -706,6 +973,10 @@
     for (var j = 0; j < languageRadios.length; j += 1) {
       languageRadios[j].checked = languageRadios[j].value === data.settings.language;
     }
+
+    elements.workStartInput.value = data.settings.workStart;
+    elements.plannedHoursInput.value = String(data.settings.plannedHours);
+    renderUpdateState();
 
     elements.appVersion.textContent = "v" + APP_VERSION;
   }
@@ -970,6 +1241,31 @@
     if (!saved) return;
   }
 
+  function saveWorkStart() {
+    var value = elements.workStartInput.value;
+    if (!store.isValidTime(value)) {
+      elements.workStartInput.value = data.settings.workStart;
+      return;
+    }
+    data.settings.workStart = value;
+    persist();
+    renderLiveCard(new Date());
+  }
+
+  function savePlannedHours() {
+    var rawText = elements.plannedHoursInput.value.trim();
+    var parsed = rawText === "" ? NaN : Number(rawText);
+    if (!isFinite(parsed)) {
+      elements.plannedHoursInput.value = String(data.settings.plannedHours);
+      return;
+    }
+    var value = Math.max(0, Math.min(24, Math.round(parsed * 4) / 4));
+    data.settings.plannedHours = value;
+    elements.plannedHoursInput.value = String(value);
+    persist();
+    renderLiveCard(new Date());
+  }
+
   function exportData() {
     var payload = {
       app: "radni-sati",
@@ -1147,6 +1443,17 @@
     });
     elements.allowanceAmount.addEventListener("change", saveAllowanceAmount);
 
+    elements.workStartInput.addEventListener("change", saveWorkStart);
+    elements.plannedHoursInput.addEventListener("change", savePlannedHours);
+
+    elements.livePlanMinus.addEventListener("click", function () { changePlanHours(-0.25); });
+    elements.livePlanPlus.addEventListener("click", function () { changePlanHours(0.25); });
+
+    elements.checkUpdateBtn.addEventListener("click", function () { checkForUpdate(); });
+    elements.updateNowBtn.addEventListener("click", performUpdate);
+    elements.updateBannerApply.addEventListener("click", performUpdate);
+    elements.updateBannerDismiss.addEventListener("click", dismissUpdate);
+
     elements.themeControl.addEventListener("change", function (event) {
       if (event.target && event.target.name === "theme") changeTheme(event.target.value);
     });
@@ -1219,7 +1526,12 @@
   function registerServiceWorker() {
     if (!("serviceWorker" in navigator)) return;
     window.addEventListener("load", function () {
-      navigator.serviceWorker.register("./sw.js?v=" + APP_VERSION).catch(function () {
+      navigator.serviceWorker.register("./sw.js?v=" + APP_VERSION).then(function (registration) {
+        if (registration && typeof registration.update === "function") {
+          return registration.update().catch(function () { return null; });
+        }
+        return null;
+      }).catch(function () {
         /* The app still works online if registration is unavailable. */
       });
     });
@@ -1240,7 +1552,13 @@
         toast(i18n.t("loadError"));
       }, 350);
     }
+    startLiveClock();
     registerServiceWorker();
+    if (navigator.onLine) {
+      window.setTimeout(function () {
+        checkForUpdate({ silent: true });
+      }, 500);
+    }
   }
 
   init();

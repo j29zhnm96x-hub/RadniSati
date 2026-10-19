@@ -1,21 +1,21 @@
 "use strict";
 
-var CACHE_NAME = "radni-sati-v0.1.1";
+var CACHE_NAME = "radni-sati-v0.2.0";
 var CACHE_PREFIX = "radni-sati-";
 var INDEX_URL = new URL("./index.html", self.registration.scope).href;
+var VERSION_PATH = new URL("./version.json", self.registration.scope).pathname;
 
 var ASSETS = [
   "./",
   "./index.html",
-  "./css/styles.css?v=0.1.1",
-  "./js/i18n.js?v=0.1.1",
-  "./js/store.js?v=0.1.1",
-  "./js/app.js?v=0.1.1",
-  "./manifest.webmanifest?v=0.1.1",
-  "./version.json",
-  "./icons/icon-192.png?v=0.1.1",
-  "./icons/icon-512.png?v=0.1.1",
-  "./icons/apple-touch-icon.png?v=0.1.1"
+  "./css/styles.css?v=0.2.0",
+  "./js/i18n.js?v=0.2.0",
+  "./js/store.js?v=0.2.0",
+  "./js/app.js?v=0.2.0",
+  "./manifest.webmanifest?v=0.2.0",
+  "./icons/icon-192.png?v=0.2.0",
+  "./icons/icon-512.png?v=0.2.0",
+  "./icons/apple-touch-icon.png?v=0.2.0"
 ];
 
 self.addEventListener("install", function (event) {
@@ -50,6 +50,11 @@ self.addEventListener("fetch", function (event) {
   var url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname === new URL("./sw.js", self.registration.scope).pathname) return;
+
+  if (url.pathname === VERSION_PATH) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
+    return;
+  }
 
   if (request.mode === "navigate") {
     event.respondWith(

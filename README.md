@@ -13,6 +13,19 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.2.0
+
+- Live earnings clock on Today, based on the configured start time and planned hours, with a per-day override.
+- Settings → **Radno vrijeme** stores the start time and default planned hours.
+- In-app update checks with a one-click refresh of the installed PWA.
+- Existing v0.1.1 data loads unchanged; the new fields are included in export/import.
+
+## Updates
+
+The app compares its built-in version (`APP_VERSION` in `js/app.js`) with `version.json` on launch and from **Settings → Ažuriranje**. If a newer version exists, the banner and Settings offer a one-click update that unregisters service workers, clears caches and reloads with a cache-busting query.
+
+When releasing, bump the version consistently in `APP_VERSION`, `version.json`, `manifest.webmanifest`, the asset queries in `index.html` and the cache name/precache list in `sw.js`. `version.json` is intentionally network-only and is never precached.
+
 ## Install on iPhone
 
 Open the deployed HTTPS URL in Safari, tap Share, then **Add to Home Screen**.

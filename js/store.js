@@ -24,6 +24,14 @@
     return "rate-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
   }
 
+  function isValidTime(value) {
+    return typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+  }
+
+  function snapQuarter(value) {
+    return Math.round(value * 4) / 4;
+  }
+
   function isValidDateKey(value) {
     if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
     var parts = value.split("-");
@@ -43,8 +51,11 @@
         theme: "auto",
         allowanceEnabled: true,
         allowanceAmount: 5,
+        workStart: "08:00",
+        plannedHours: 8,
         rates: []
       },
+      plans: {},
       days: {}
     };
   }
@@ -87,6 +98,12 @@
       if (typeof rawSettings.allowanceAmount === "number" && isFinite(rawSettings.allowanceAmount) && rawSettings.allowanceAmount >= 0) {
         out.settings.allowanceAmount = round2(rawSettings.allowanceAmount);
       }
+      if (isValidTime(rawSettings.workStart)) {
+        out.settings.workStart = rawSettings.workStart;
+      }
+      if (typeof rawSettings.plannedHours === "number" && isFinite(rawSettings.plannedHours) && rawSettings.plannedHours >= 0 && rawSettings.plannedHours <= 24) {
+        out.settings.plannedHours = snapQuarter(rawSettings.plannedHours);
+      }
 
       if (Array.isArray(rawSettings.rates)) {
         var seenIds = {};
@@ -99,6 +116,18 @@
         for (var j = 0; j < dates.length; j += 1) {
           out.settings.rates.push(byDate[dates[j]]);
         }
+      }
+    }
+
+    if (isPlainObject(input.plans)) {
+      var rawPlans = input.plans;
+      var planKeys = Object.keys(rawPlans);
+      for (var p = 0; p < planKeys.length; p += 1) {
+        var planDate = planKeys[p];
+        var planHours = rawPlans[planDate];
+        if (!isValidDateKey(planDate)) continue;
+        if (typeof planHours !== "number" || !isFinite(planHours) || planHours < 0 || planHours > 24) continue;
+        out.plans[planDate] = snapQuarter(planHours);
       }
     }
 
@@ -171,6 +200,7 @@
     sanitizeData: sanitizeData,
     parseBackup: parseBackup,
     isValidDateKey: isValidDateKey,
+    isValidTime: isValidTime,
     makeId: makeId,
     round2: round2,
     didLastLoadFail: function () { return lastLoadFailed; }

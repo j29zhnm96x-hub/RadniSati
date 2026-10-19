@@ -14,10 +14,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Radni sati">
 
-  <link rel="manifest" href="./manifest.webmanifest?v=0.1.1">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.1.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.1.1">
-  <link rel="stylesheet" href="./css/styles.css?v=0.1.1">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.2.0">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.2.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.2.0">
+  <link rel="stylesheet" href="./css/styles.css?v=0.2.0">
 
   <script>
     (function () {
@@ -37,6 +37,18 @@
 </head>
 <body>
   <main class="main-content" id="mainContent">
+    <div class="update-banner" id="updateBanner" role="status" hidden>
+      <p class="update-banner-text" id="updateBannerText"></p>
+      <div class="update-banner-actions">
+        <button class="btn btn-banner" id="updateBannerApply" type="button" data-i18n="updateNowShort">Ažuriraj</button>
+        <button class="icon-btn update-banner-close" id="updateBannerDismiss" type="button" data-i18n-aria-label="dismissUpdate" aria-label="Zatvori obavijest o ažuriranju">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
     <section class="view" id="view-today" data-view="today" aria-labelledby="todayHeading">
       <header class="page-header">
         <div class="header-copy">
@@ -51,6 +63,33 @@
       </header>
 
       <div class="view-stack">
+        <section class="live-card" id="liveCard" aria-labelledby="liveLabel">
+          <div class="live-top">
+            <div class="live-earn">
+              <p class="live-label" id="liveLabel" data-i18n="liveEarned">Zarađeno do sada</p>
+              <p class="live-amount" id="liveAmount">0,00 €</p>
+              <p class="live-hint" id="liveHint" hidden data-i18n="liveNoRate">Postavi satnicu u Postavkama kako bi se zarada mogla izračunati.</p>
+            </div>
+            <div class="live-clock-wrap">
+              <p class="live-clock" id="liveClock">--:--:--</p>
+              <p class="live-state" id="liveState"></p>
+            </div>
+          </div>
+
+          <div class="live-progress" aria-hidden="true">
+            <span class="live-progress-bar" id="liveProgressBar"></span>
+          </div>
+
+          <div class="live-plan-row">
+            <span class="live-plan-label" data-i18n="livePlanLabel">Danas radim</span>
+            <div class="stepper">
+              <button class="stepper-btn" id="livePlanMinus" type="button" data-i18n-aria-label="livePlanLess" aria-label="Smanji planirane sate">−</button>
+              <span class="stepper-value" id="livePlanValue">8 h</span>
+              <button class="stepper-btn" id="livePlanPlus" type="button" data-i18n-aria-label="livePlanMore" aria-label="Povećaj planirane sate">+</button>
+            </div>
+          </div>
+        </section>
+
         <section class="hero-card" aria-labelledby="todayEarningsLabel">
           <p class="hero-label" id="todayEarningsLabel" data-i18n="todayEarnings">Današnja zarada</p>
           <p class="hero-total" id="todayTotal">0,00 €</p>
@@ -315,6 +354,26 @@
           </div>
         </section>
 
+        <section class="card" aria-labelledby="workTimeHeading">
+          <div class="card-heading">
+            <h2 id="workTimeHeading" data-i18n="workTimeSection">Radno vrijeme</h2>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="workStartInput" data-i18n="workStartLabel">Početak rada</label>
+              <input class="field-input" id="workStartInput" type="time" step="60" aria-describedby="workTimeHint">
+            </div>
+            <div class="field">
+              <label for="plannedHoursInput" data-i18n="plannedHoursLabel">Planirani sati dnevno</label>
+              <div class="input-shell">
+                <input class="field-input" id="plannedHoursInput" type="number" inputmode="decimal" min="0" max="24" step="0.25" autocomplete="off" aria-describedby="workTimeHint">
+                <span class="input-suffix" aria-hidden="true" data-i18n="hourUnit">h</span>
+              </div>
+            </div>
+          </div>
+          <p class="section-hint field-help" id="workTimeHint" data-i18n="workTimeHint">Koristi se za dnevnu karticu zarade. Ne mijenja spremljene dane.</p>
+        </section>
+
         <section class="card" aria-labelledby="appearanceHeading">
           <div class="card-heading">
             <h2 id="appearanceHeading" data-i18n="appearanceTitle">Izgled</h2>
@@ -365,7 +424,24 @@
           </div>
         </section>
 
-        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.1.1</span></p>
+        <section class="card" aria-labelledby="updateHeading">
+          <div class="card-heading">
+            <h2 id="updateHeading" data-i18n="updateSection">Ažuriranje</h2>
+          </div>
+          <div class="update-version-row">
+            <span class="update-version-label" data-i18n="currentVersion">Trenutna verzija</span>
+            <strong class="update-version-value" id="updateCurrentVersion">v0.2.0</strong>
+          </div>
+          <p class="section-hint" data-i18n="updateHint">Provjeri je li dostupna nova verzija aplikacije.</p>
+          <button class="btn btn-secondary btn-block" id="checkUpdateBtn" type="button" data-i18n="checkUpdates">Provjeri ažuriranja</button>
+          <p class="update-status" id="updateStatus" role="status" aria-live="polite" hidden></p>
+          <div class="update-available" id="updateAvailable" hidden>
+            <p class="update-available-text" id="updateAvailableText"></p>
+            <button class="btn btn-primary btn-block" id="updateNowBtn" type="button" data-i18n="updateNow">Ažuriraj sada</button>
+          </div>
+        </section>
+
+        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.2.0</span></p>
       </div>
     </section>
   </main>
@@ -515,8 +591,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="./js/i18n.js?v=0.1.1"></script>
-  <script src="./js/store.js?v=0.1.1"></script>
-  <script src="./js/app.js?v=0.1.1"></script>
+  <script src="./js/i18n.js?v=0.2.0"></script>
+  <script src="./js/store.js?v=0.2.0"></script>
+  <script src="./js/app.js?v=0.2.0"></script>
 </body>
 </html>
