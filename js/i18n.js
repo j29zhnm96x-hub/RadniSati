@@ -1,0 +1,295 @@
+(function () {
+  "use strict";
+
+  var STRINGS = {
+    hr: {
+      appName: "Radni sati",
+      navLabel: "Glavna navigacija",
+      navToday: "Danas",
+      navHistory: "Povijest",
+      navMonth: "Mjesec",
+      navSettings: "Postavke",
+
+      todaySubtitle: "Zabilježi svoj radni dan.",
+      todayEarnings: "Današnja zarada",
+      todayEntry: "Unos dana",
+      hoursLabel: "Radni sati",
+      hoursHint: "korak 0,25 h",
+      travelLabel: "Putni trošak",
+      otherLabel: "Ostalo",
+      noteLabel: "Napomena (neobavezno)",
+      notePlaceholder: "npr. teren, prekovremeno",
+      calcTitle: "Izračun",
+      basePay: "Osnovna zarada",
+      dailyAllowance: "Dnevna naknada",
+      total: "Ukupno",
+      hourUnit: "h",
+      saveDay: "Spremi dan",
+      updateDay: "Ažuriraj dan",
+      deleteDay: "Izbriši dan",
+      save: "Spremi",
+      update: "Ažuriraj",
+      delete: "Izbriši",
+      cancel: "Odustani",
+      close: "Zatvori",
+      confirm: "Potvrdi",
+      quickPickLabel: "Brzi odabir sati",
+      quickHoursAria: "Postavi {hours} sati",
+      heroFormula: "{hours} h × {rate}/h",
+      baseDetail: "{hours} h × {rate}/h",
+      hoursErrorNumber: "Unesi ispravan broj sati.",
+      hoursErrorStep: "Sati moraju biti u koracima od 0,25.",
+      travelError: "Unesi ispravan iznos putnog troška.",
+      otherError: "Unesi ispravan iznos.",
+      toastSaved: "Dan je spremljen.",
+      toastUpdated: "Dan je ažuriran.",
+      toastDeleted: "Dan je izbrisan.",
+      deleteDayTitle: "Izbrisati ovaj dan?",
+      deleteDayMessage: "Unos za {date} bit će trajno izbrisan.",
+      editEntryAria: "Uredi unos za {date}",
+      entryEyebrow: "Unos",
+      rateForDate: "Satnica za ovaj dan: {rate}/h",
+
+      historySubtitle: "Svi zabilježeni dani, najnoviji prvi.",
+      historyEmptyTitle: "Još nema unosa",
+      historyEmptyText: "Zabilježi današnje sate na kartici Danas. Povijest se pojavljuje ovdje.",
+      historyCount: "{days} dana",
+
+      monthSubtitle: "Mjesečni pregled zarade.",
+      monthSalary: "Plaća za mjesec",
+      prevMonth: "Prethodni mjesec",
+      nextMonth: "Sljedeći mjesec",
+      daysRecorded: "Dani",
+      totalHours: "Sati",
+      monthBase: "Osnovna zarada",
+      monthAllowance: "Dnevna naknada",
+      monthTravel: "Putni trošak",
+      monthOther: "Ostalo",
+      monthTotalHours: "{hours} h ukupno",
+      monthStatsLabel: "Mjesečni ukupni iznosi",
+      dailyBreakdown: "Po danima",
+      monthEmpty: "Nema unosa u ovom mjesecu.",
+
+      settingsSubtitle: "Satnica, izgled i tvoji podaci.",
+      rateSection: "Satnica",
+      currentRate: "Trenutna satnica",
+      notSet: "Nije postavljeno",
+      perHour: "po satu",
+      rateAmountLabel: "Iznos satnice",
+      rateValidFrom: "Vrijedi od",
+      saveRate: "Spremi satnicu",
+      rateNote: "Promjena vrijedi od odabranog datuma. Stariji dani zadržavaju staru satnicu.",
+      rateHistory: "Povijest satnica",
+      rateHistoryEmpty: "Nema spremljenih satnica.",
+      rateFrom: "od {date}",
+      deleteRateAria: "Izbriši satnicu od {date}",
+      rateSaved: "Satnica je spremljena.",
+      rateDeleted: "Satnica je izbrisana.",
+      rateLastError: "Mora ostati barem jedna satnica.",
+      rateInvalid: "Unesi ispravan iznos satnice.",
+      ratePositive: "Satnica mora biti veća od nule.",
+      rateDateInvalid: "Odaberi ispravan datum.",
+      deleteRateTitle: "Izbrisati satnicu?",
+      deleteRateMessage: "Satnica od {date} bit će izbrisana. Izračuni za taj period mogu se promijeniti.",
+      allowanceSection: "Dnevna naknada",
+      allowanceToggleAria: "Uključi ili isključi dnevnu naknadu",
+      allowanceHint: "Marenda ili imandra koju poslodavac daje po danu.",
+      allowanceAmountLabel: "Iznos naknade",
+      allowanceInvalid: "Unesi ispravan iznos naknade.",
+      appearanceTitle: "Izgled",
+      themeLabel: "Tema",
+      themeAuto: "Automatski",
+      themeLight: "Svijetla",
+      themeDark: "Tamna",
+      languageLabel: "Jezik",
+      languageHr: "Hrvatski",
+      languageEn: "English",
+      dataTitle: "Podaci",
+      dataNote: "Podaci se čuvaju samo na ovom uređaju.",
+      exportData: "Izvezi podatke",
+      importData: "Uvezi podatke",
+      clearData: "Izbriši sve podatke",
+      exportDone: "Podaci su izvezeni.",
+      importInvalid: "Datoteka nije ispravna sigurnosna kopija.",
+      importDone: "Podaci su uvezeni.",
+      importTitle: "Uvesti podatke?",
+      importMessage: "Svi trenutni podaci bit će zamijenjeni sadržajem datoteke.",
+      importConfirm: "Uvezi",
+      clearTitle: "Izbrisati sve podatke?",
+      clearMessage: "Svi unosi, satnice i postavke bit će trajno izbrisani.",
+      clearConfirm: "Izbriši sve",
+      cleared: "Svi podaci su izbrisani.",
+      firstRunTitle: "Prvo postavi satnicu",
+      firstRunText: "Unesi iznos po satu kako bi se zarada mogla izračunati. Datum možeš promijeniti ako satnica vrijedi od ranije.",
+      versionLabel: "Verzija",
+      storageError: "Podaci nisu spremljeni. Provjeri dostupnu memoriju uređaja.",
+      loadError: "Spremljeni podaci nisu mogli biti učitani. Aplikacija je pokrenuta s praznim stanjem."
+    },
+    en: {
+      appName: "Work Hours",
+      navLabel: "Main navigation",
+      navToday: "Today",
+      navHistory: "History",
+      navMonth: "Month",
+      navSettings: "Settings",
+
+      todaySubtitle: "Record your workday.",
+      todayEarnings: "Today's earnings",
+      todayEntry: "Day entry",
+      hoursLabel: "Hours worked",
+      hoursHint: "0.25 h steps",
+      travelLabel: "Travel cost",
+      otherLabel: "Other",
+      noteLabel: "Note (optional)",
+      notePlaceholder: "e.g. site visit, overtime",
+      calcTitle: "Calculation",
+      basePay: "Base pay",
+      dailyAllowance: "Daily allowance",
+      total: "Total",
+      hourUnit: "h",
+      saveDay: "Save day",
+      updateDay: "Update day",
+      deleteDay: "Delete day",
+      save: "Save",
+      update: "Update",
+      delete: "Delete",
+      cancel: "Cancel",
+      close: "Close",
+      confirm: "Confirm",
+      quickPickLabel: "Quick hours",
+      quickHoursAria: "Set {hours} hours",
+      heroFormula: "{hours} h × {rate}/h",
+      baseDetail: "{hours} h × {rate}/h",
+      hoursErrorNumber: "Enter a valid number of hours.",
+      hoursErrorStep: "Hours must be in steps of 0.25.",
+      travelError: "Enter a valid travel cost.",
+      otherError: "Enter a valid amount.",
+      toastSaved: "Day saved.",
+      toastUpdated: "Day updated.",
+      toastDeleted: "Day deleted.",
+      deleteDayTitle: "Delete this day?",
+      deleteDayMessage: "The entry for {date} will be permanently deleted.",
+      editEntryAria: "Edit entry for {date}",
+      entryEyebrow: "Entry",
+      rateForDate: "Rate for this day: {rate}/h",
+
+      historySubtitle: "Every recorded day, newest first.",
+      historyEmptyTitle: "No entries yet",
+      historyEmptyText: "Record today's hours on the Today tab. Your history will appear here.",
+      historyCount: "{days} days",
+
+      monthSubtitle: "Your monthly earnings overview.",
+      monthSalary: "Monthly salary",
+      prevMonth: "Previous month",
+      nextMonth: "Next month",
+      daysRecorded: "Days",
+      totalHours: "Hours",
+      monthBase: "Base pay",
+      monthAllowance: "Daily allowance",
+      monthTravel: "Travel",
+      monthOther: "Other",
+      monthTotalHours: "{hours} h total",
+      monthStatsLabel: "Monthly totals",
+      dailyBreakdown: "Daily breakdown",
+      monthEmpty: "No entries this month.",
+
+      settingsSubtitle: "Your rate, appearance and data.",
+      rateSection: "Hourly rate",
+      currentRate: "Current rate",
+      notSet: "Not set",
+      perHour: "per hour",
+      rateAmountLabel: "Rate amount",
+      rateValidFrom: "Valid from",
+      saveRate: "Save rate",
+      rateNote: "The change applies from the selected date. Earlier days keep their previous rate.",
+      rateHistory: "Rate history",
+      rateHistoryEmpty: "No rates saved.",
+      rateFrom: "from {date}",
+      deleteRateAria: "Delete rate from {date}",
+      rateSaved: "Rate saved.",
+      rateDeleted: "Rate deleted.",
+      rateLastError: "At least one rate must remain.",
+      rateInvalid: "Enter a valid hourly rate.",
+      ratePositive: "The rate must be greater than zero.",
+      rateDateInvalid: "Select a valid date.",
+      deleteRateTitle: "Delete rate?",
+      deleteRateMessage: "The rate from {date} will be deleted. Earnings for that period may change.",
+      allowanceSection: "Daily allowance",
+      allowanceToggleAria: "Enable or disable the daily allowance",
+      allowanceHint: "The daily meal allowance provided by your employer.",
+      allowanceAmountLabel: "Allowance amount",
+      allowanceInvalid: "Enter a valid allowance amount.",
+      appearanceTitle: "Appearance",
+      themeLabel: "Theme",
+      themeAuto: "Auto",
+      themeLight: "Light",
+      themeDark: "Dark",
+      languageLabel: "Language",
+      languageHr: "Hrvatski",
+      languageEn: "English",
+      dataTitle: "Data",
+      dataNote: "Data is stored only on this device.",
+      exportData: "Export data",
+      importData: "Import data",
+      clearData: "Clear all data",
+      exportDone: "Data exported.",
+      importInvalid: "This file is not a valid backup.",
+      importDone: "Data imported.",
+      importTitle: "Import data?",
+      importMessage: "All current data will be replaced by the file contents.",
+      importConfirm: "Import",
+      clearTitle: "Clear all data?",
+      clearMessage: "All entries, rates and settings will be permanently deleted.",
+      clearConfirm: "Clear all",
+      cleared: "All data cleared.",
+      firstRunTitle: "Set your hourly rate first",
+      firstRunText: "Enter your rate to calculate earnings. You can change the date if the rate applies from an earlier day.",
+      versionLabel: "Version",
+      storageError: "Data could not be saved. Check available device storage.",
+      loadError: "Saved data could not be loaded. The app started with an empty state."
+    }
+  };
+
+  var currentLang = "hr";
+
+  function setLanguage(lang) {
+    currentLang = lang === "en" ? "en" : "hr";
+    document.documentElement.lang = currentLang;
+    return currentLang;
+  }
+
+  function t(key, vars) {
+    var table = STRINGS[currentLang] || STRINGS.hr;
+    var value = table[key];
+    if (value === undefined) value = STRINGS.hr[key];
+    if (value === undefined) return key;
+    if (!vars) return value;
+    return value.replace(/\{(\w+)\}/g, function (match, name) {
+      return Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match;
+    });
+  }
+
+  function apply(root) {
+    var scope = root || document;
+    var nodes = scope.querySelectorAll("[data-i18n]");
+    for (var i = 0; i < nodes.length; i += 1) {
+      nodes[i].textContent = t(nodes[i].getAttribute("data-i18n"));
+    }
+    var placeholders = scope.querySelectorAll("[data-i18n-placeholder]");
+    for (var j = 0; j < placeholders.length; j += 1) {
+      placeholders[j].setAttribute("placeholder", t(placeholders[j].getAttribute("data-i18n-placeholder")));
+    }
+    var labels = scope.querySelectorAll("[data-i18n-aria-label]");
+    for (var k = 0; k < labels.length; k += 1) {
+      labels[k].setAttribute("aria-label", t(labels[k].getAttribute("data-i18n-aria-label")));
+    }
+  }
+
+  window.RSI18n = {
+    t: t,
+    apply: apply,
+    setLanguage: setLanguage,
+    getLanguage: function () { return currentLang; },
+    strings: STRINGS
+  };
+}());

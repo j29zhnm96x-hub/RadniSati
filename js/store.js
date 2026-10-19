@@ -1,0 +1,178 @@
+(function () {
+  "use strict";
+
+  var KEY = "radni-sati:v1";
+  var SCHEMA = 1;
+  var lastLoadFailed = false;
+
+  function isPlainObject(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+  }
+
+  function round2(value) {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
+  }
+
+  function round4(value) {
+    return Math.round((value + Number.EPSILON) * 10000) / 10000;
+  }
+
+  function makeId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+    return "rate-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+  }
+
+  function isValidDateKey(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    var parts = value.split("-");
+    var year = Number(parts[0]);
+    var month = Number(parts[1]);
+    var day = Number(parts[2]);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+    var date = new Date(year, month - 1, day, 12, 0, 0, 0);
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+  }
+
+  function defaults() {
+    return {
+      schema: SCHEMA,
+      settings: {
+        language: "hr",
+        theme: "auto",
+        allowanceEnabled: true,
+        allowanceAmount: 5,
+        rates: []
+      },
+      days: {}
+    };
+  }
+
+  function sanitizeRate(raw, seenIds) {
+    if (!isPlainObject(raw)) return null;
+    if (typeof raw.amount !== "number" || !isFinite(raw.amount) || raw.amount < 0) return null;
+    if (!isValidDateKey(raw.validFrom)) return null;
+    var id = typeof raw.id === "string" && raw.id ? raw.id : makeId();
+    if (seenIds[id]) id = makeId();
+    seenIds[id] = true;
+    return {
+      id: id,
+      amount: round2(raw.amount),
+      validFrom: raw.validFrom
+    };
+  }
+
+  function sanitizeData(input) {
+    if (!isPlainObject(input)) return null;
+    if (input.schema !== undefined && input.schema !== SCHEMA) return null;
+
+    var hasSettings = isPlainObject(input.settings);
+    var hasDays = isPlainObject(input.days);
+    if (!hasSettings && !hasDays) return null;
+
+    var out = defaults();
+
+    if (hasSettings) {
+      var rawSettings = input.settings;
+      if (rawSettings.language === "en" || rawSettings.language === "hr") {
+        out.settings.language = rawSettings.language;
+      }
+      if (rawSettings.theme === "auto" || rawSettings.theme === "light" || rawSettings.theme === "dark") {
+        out.settings.theme = rawSettings.theme;
+      }
+      if (typeof rawSettings.allowanceEnabled === "boolean") {
+        out.settings.allowanceEnabled = rawSettings.allowanceEnabled;
+      }
+      if (typeof rawSettings.allowanceAmount === "number" && isFinite(rawSettings.allowanceAmount) && rawSettings.allowanceAmount >= 0) {
+        out.settings.allowanceAmount = round2(rawSettings.allowanceAmount);
+      }
+
+      if (Array.isArray(rawSettings.rates)) {
+        var seenIds = {};
+        var byDate = {};
+        for (var i = 0; i < rawSettings.rates.length; i += 1) {
+          var rate = sanitizeRate(rawSettings.rates[i], seenIds);
+          if (rate) byDate[rate.validFrom] = rate;
+        }
+        var dates = Object.keys(byDate).sort();
+        for (var j = 0; j < dates.length; j += 1) {
+          out.settings.rates.push(byDate[dates[j]]);
+        }
+      }
+    }
+
+    if (hasDays) {
+      var rawDays = input.days;
+      var keys = Object.keys(rawDays);
+      for (var k = 0; k < keys.length; k += 1) {
+        var dateKey = keys[k];
+        var rawDay = rawDays[dateKey];
+        if (!isValidDateKey(dateKey) || !isPlainObject(rawDay)) continue;
+        if (!("hours" in rawDay) && !("travel" in rawDay) && !("other" in rawDay) && !("note" in rawDay)) continue;
+
+        if ("hours" in rawDay && (typeof rawDay.hours !== "number" || !isFinite(rawDay.hours) || rawDay.hours < 0)) continue;
+        if ("travel" in rawDay && (typeof rawDay.travel !== "number" || !isFinite(rawDay.travel) || rawDay.travel < 0)) continue;
+        if ("other" in rawDay && (typeof rawDay.other !== "number" || !isFinite(rawDay.other) || rawDay.other < 0)) continue;
+
+        var note = typeof rawDay.note === "string" ? rawDay.note.trim().slice(0, 500) : "";
+        out.days[dateKey] = {
+          hours: round4(typeof rawDay.hours === "number" ? rawDay.hours : 0),
+          travel: round2(typeof rawDay.travel === "number" ? rawDay.travel : 0),
+          other: round2(typeof rawDay.other === "number" ? rawDay.other : 0),
+          note: note
+        };
+      }
+    }
+
+    return out;
+  }
+
+  function load() {
+    lastLoadFailed = false;
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw === null) return defaults();
+      var parsed = JSON.parse(raw);
+      var cleaned = sanitizeData(parsed);
+      if (!cleaned) {
+        lastLoadFailed = true;
+        return defaults();
+      }
+      return cleaned;
+    } catch (error) {
+      lastLoadFailed = true;
+      return defaults();
+    }
+  }
+
+  function save(data) {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function parseBackup(payload) {
+    if (!isPlainObject(payload)) return null;
+    var candidate = payload;
+    if (payload.app === "radni-sati" && payload.data !== undefined) candidate = payload.data;
+    return sanitizeData(candidate);
+  }
+
+  window.RSStore = {
+    key: KEY,
+    schema: SCHEMA,
+    defaults: defaults,
+    load: load,
+    save: save,
+    sanitizeData: sanitizeData,
+    parseBackup: parseBackup,
+    isValidDateKey: isValidDateKey,
+    makeId: makeId,
+    round2: round2,
+    didLastLoadFail: function () { return lastLoadFailed; }
+  };
+}());
