@@ -1,21 +1,21 @@
 "use strict";
 
-var CACHE_NAME = "radni-sati-v0.1.0";
+var CACHE_NAME = "radni-sati-v0.1.1";
 var CACHE_PREFIX = "radni-sati-";
 var INDEX_URL = new URL("./index.html", self.registration.scope).href;
 
 var ASSETS = [
   "./",
   "./index.html",
-  "./css/styles.css?v=0.1.0",
-  "./js/i18n.js?v=0.1.0",
-  "./js/store.js?v=0.1.0",
-  "./js/app.js?v=0.1.0",
-  "./manifest.webmanifest?v=0.1.0",
+  "./css/styles.css?v=0.1.1",
+  "./js/i18n.js?v=0.1.1",
+  "./js/store.js?v=0.1.1",
+  "./js/app.js?v=0.1.1",
+  "./manifest.webmanifest?v=0.1.1",
   "./version.json",
-  "./icons/icon-192.png?v=0.1.0",
-  "./icons/icon-512.png?v=0.1.0",
-  "./icons/apple-touch-icon.png?v=0.1.0"
+  "./icons/icon-192.png?v=0.1.1",
+  "./icons/icon-512.png?v=0.1.1",
+  "./icons/apple-touch-icon.png?v=0.1.1"
 ];
 
 self.addEventListener("install", function (event) {
