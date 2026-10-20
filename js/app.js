@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.5.0";
+  var APP_VERSION = "0.5.1";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -20,9 +20,7 @@
   var witnessedDate = null;
   var lastSeenWrite = 0;
   var LAST_SEEN_KEY = "radni-sati:last-seen";
-  var THEME_LOCATION_KEY = "radni-sati:theme-location";
   var THEME_DARK_KEY = "radni-sati:theme-dark";
-  var themeLocation = null;
   var themeTimer = null;
   var updateState = { available: null, statusKey: null, busy: false };
   var UPDATE_DISMISS_KEY = "radni-sati:update-dismissed";
@@ -48,7 +46,6 @@
       "firstRunHint", "currentRateValue", "currentRateUnit", "rateForm", "rateAmount",
       "rateAmountError", "rateDate", "rateDateError", "rateHistoryList", "rateHistoryEmpty",
       "allowanceToggle", "allowanceAmount", "allowanceError", "themeControl",
-      "sunPanel", "sunTimes", "sunPlace", "sunLocateBtn",
       "languageControl", "exportBtn", "importBtn", "importFile", "clearBtn", "appVersion",
       "workStartInput", "plannedHoursInput",
       "updateCurrentVersion", "checkUpdateBtn", "updateStatus", "updateAvailable",
@@ -142,10 +139,6 @@
       day: "numeric",
       month: "long",
       year: "numeric"
-    });
-    formatters.time = new Intl.DateTimeFormat(locale, {
-      hour: "2-digit",
-      minute: "2-digit"
     });
   }
 
@@ -528,92 +521,53 @@
   var SUN_OBLIQUITY = SUN_RAD * 23.4397;
   var SUN_ZENITH = SUN_RAD * -0.833;
 
-  var TZ_PLACES = {
-    "Europe/Zagreb": { label: "Zagreb", lat: 45.815, lon: 15.982 },
-    "Europe/Ljubljana": { label: "Ljubljana", lat: 46.056, lon: 14.505 },
-    "Europe/Sarajevo": { label: "Sarajevo", lat: 43.856, lon: 18.413 },
-    "Europe/Belgrade": { label: "Beograd", lat: 44.787, lon: 20.457 },
-    "Europe/Podgorica": { label: "Podgorica", lat: 42.441, lon: 19.263 },
-    "Europe/Skopje": { label: "Skoplje", lat: 41.998, lon: 21.425 },
-    "Europe/Vienna": { label: "Beč", lat: 48.208, lon: 16.373 },
-    "Europe/Budapest": { label: "Budimpešta", lat: 47.498, lon: 19.04 },
-    "Europe/Rome": { label: "Rim", lat: 41.903, lon: 12.496 },
-    "Europe/Berlin": { label: "Berlin", lat: 52.52, lon: 13.405 },
-    "Europe/Munich": { label: "München", lat: 48.135, lon: 11.582 },
-    "Europe/Prague": { label: "Prag", lat: 50.076, lon: 14.438 },
-    "Europe/Bratislava": { label: "Bratislava", lat: 48.146, lon: 17.107 },
-    "Europe/Warsaw": { label: "Varšava", lat: 52.23, lon: 21.012 },
-    "Europe/Paris": { label: "Pariz", lat: 48.857, lon: 2.352 },
-    "Europe/London": { label: "London", lat: 51.507, lon: -0.128 },
-    "Europe/Dublin": { label: "Dublin", lat: 53.35, lon: -6.26 },
-    "Europe/Amsterdam": { label: "Amsterdam", lat: 52.37, lon: 4.895 },
-    "Europe/Brussels": { label: "Bruxelles", lat: 50.851, lon: 4.352 },
-    "Europe/Zurich": { label: "Zürich", lat: 47.377, lon: 8.542 },
-    "Europe/Athens": { label: "Atina", lat: 37.984, lon: 23.728 },
-    "Europe/Bucharest": { label: "Bukurešt", lat: 44.427, lon: 26.103 },
-    "Europe/Sofia": { label: "Sofija", lat: 42.698, lon: 23.322 },
-    "Europe/Istanbul": { label: "Istanbul", lat: 41.008, lon: 28.978 },
-    "Europe/Stockholm": { label: "Stockholm", lat: 59.329, lon: 18.069 },
-    "Europe/Oslo": { label: "Oslo", lat: 59.914, lon: 10.752 },
-    "Europe/Copenhagen": { label: "Kopenhagen", lat: 55.677, lon: 12.568 },
-    "Europe/Helsinki": { label: "Helsinki", lat: 60.169, lon: 24.938 },
-    "Europe/Madrid": { label: "Madrid", lat: 40.417, lon: -3.704 },
-    "Europe/Lisbon": { label: "Lisabon", lat: 38.722, lon: -9.139 }
+  var TZ_COORDS = {
+    "Europe/Zagreb": [45.815, 15.982],
+    "Europe/Ljubljana": [46.056, 14.505],
+    "Europe/Sarajevo": [43.856, 18.413],
+    "Europe/Belgrade": [44.787, 20.457],
+    "Europe/Podgorica": [42.441, 19.263],
+    "Europe/Skopje": [41.998, 21.425],
+    "Europe/Vienna": [48.208, 16.373],
+    "Europe/Budapest": [47.498, 19.04],
+    "Europe/Rome": [41.903, 12.496],
+    "Europe/Berlin": [52.52, 13.405],
+    "Europe/Munich": [48.135, 11.582],
+    "Europe/Prague": [50.076, 14.438],
+    "Europe/Bratislava": [48.146, 17.107],
+    "Europe/Warsaw": [52.23, 21.012],
+    "Europe/Paris": [48.857, 2.352],
+    "Europe/London": [51.507, -0.128],
+    "Europe/Dublin": [53.35, -6.26],
+    "Europe/Amsterdam": [52.37, 4.895],
+    "Europe/Brussels": [50.851, 4.352],
+    "Europe/Zurich": [47.377, 8.542],
+    "Europe/Athens": [37.984, 23.728],
+    "Europe/Bucharest": [44.427, 26.103],
+    "Europe/Sofia": [42.698, 23.322],
+    "Europe/Istanbul": [41.008, 28.978],
+    "Europe/Stockholm": [59.329, 18.069],
+    "Europe/Oslo": [59.914, 10.752],
+    "Europe/Copenhagen": [55.677, 12.568],
+    "Europe/Helsinki": [60.169, 24.938],
+    "Europe/Madrid": [40.417, -3.704],
+    "Europe/Lisbon": [38.722, -9.139]
   };
 
-  var THEME_FALLBACK_PLACE = { label: "Zagreb", lat: 45.815, lon: 15.982, source: "timezone" };
+  var THEME_FALLBACK_COORDS = [45.815, 15.982];
+  var themeCoordsCache = null;
 
-  function isValidLatLon(lat, lon) {
-    return isFinite(lat) && isFinite(lon) &&
-      lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
-  }
-
-  function readStoredThemeLocation() {
-    try {
-      var raw = window.localStorage.getItem(THEME_LOCATION_KEY);
-      if (!raw) return null;
-      var parsed = JSON.parse(raw);
-      if (!parsed || !isValidLatLon(Number(parsed.lat), Number(parsed.lon))) return null;
-      return {
-        lat: Number(parsed.lat),
-        lon: Number(parsed.lon),
-        label: typeof parsed.label === "string" ? parsed.label.slice(0, 60) : "",
-        source: parsed.source === "gps" ? "gps" : "timezone"
-      };
-    } catch (error) {
-      return null;
-    }
-  }
-
-  function timezonePlace() {
+  function themeCoords() {
+    if (themeCoordsCache) return themeCoordsCache;
+    var coords = THEME_FALLBACK_COORDS;
     try {
       var zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (zone && TZ_PLACES[zone]) {
-        var place = TZ_PLACES[zone];
-        return { label: place.label, lat: place.lat, lon: place.lon, source: "timezone" };
-      }
+      if (zone && TZ_COORDS[zone]) coords = TZ_COORDS[zone];
     } catch (error) {
-      return THEME_FALLBACK_PLACE;
+      coords = THEME_FALLBACK_COORDS;
     }
-    return THEME_FALLBACK_PLACE;
-  }
-
-  function themePlace() {
-    if (!themeLocation) themeLocation = readStoredThemeLocation() || timezonePlace();
-    return themeLocation;
-  }
-
-  function saveThemeLocation(location) {
-    try {
-      window.localStorage.setItem(THEME_LOCATION_KEY, JSON.stringify(location));
-    } catch (error) {
-      /* Location stays in memory for this session. */
-    }
-  }
-
-  function placeLabel(location) {
-    if (location.source === "gps") return i18n.t("sunGpsPlace");
-    return location.label || THEME_FALLBACK_PLACE.label;
+    themeCoordsCache = { lat: coords[0], lon: coords[1] };
+    return themeCoordsCache;
   }
 
   function sunToJulian(date) {
@@ -681,8 +635,8 @@
   }
 
   function isDarkNow(now) {
-    var place = themePlace();
-    var times = sunTimes(now, place.lat, place.lon);
+    var coords = themeCoords();
+    var times = sunTimes(now, coords.lat, coords.lon);
     if (!times.sunrise || !times.sunset) {
       var hour = now.getHours();
       return hour < 7 || hour >= 19;
@@ -699,9 +653,9 @@
     if (!data || data.settings.theme !== "auto") return;
 
     var now = new Date();
-    var place = themePlace();
-    var today = sunTimes(now, place.lat, place.lon);
-    var tomorrow = sunTimes(new Date(now.getTime() + SUN_DAY_MS), place.lat, place.lon);
+    var coords = themeCoords();
+    var today = sunTimes(now, coords.lat, coords.lon);
+    var tomorrow = sunTimes(new Date(now.getTime() + SUN_DAY_MS), coords.lat, coords.lon);
     var candidates = [];
     [today.sunrise, today.sunset, tomorrow.sunrise, tomorrow.sunset].forEach(function (time) {
       if (time) candidates.push(time.getTime());
@@ -712,55 +666,7 @@
     var delay = future.length ? future[0] - now.getTime() + 1000 : 3600000;
     delay = Math.max(1000, Math.min(delay, 6 * 3600000));
 
-    themeTimer = window.setTimeout(function () {
-      applyTheme();
-      renderSunPanel();
-    }, delay);
-  }
-
-  function formatClock(date) {
-    if (!date) return "--:--";
-    return formatters.time.format(date);
-  }
-
-  function renderSunPanel() {
-    if (!elements.sunPanel) return;
-    var auto = data && data.settings.theme === "auto";
-    elements.sunPanel.hidden = !auto;
-    if (!auto) return;
-
-    var now = new Date();
-    var place = themePlace();
-    var times = sunTimes(now, place.lat, place.lon);
-    elements.sunTimes.textContent = i18n.t("sunTimes", {
-      sunrise: formatClock(times.sunrise),
-      sunset: formatClock(times.sunset)
-    });
-    elements.sunPlace.textContent = i18n.t("sunPlace", { place: placeLabel(place) });
-    elements.sunLocateBtn.disabled = !navigator.geolocation;
-  }
-
-  function requestThemeLocation() {
-    if (!navigator.geolocation) {
-      toast(i18n.t("sunGeoUnavailable"));
-      return;
-    }
-    elements.sunLocateBtn.disabled = true;
-    navigator.geolocation.getCurrentPosition(function (position) {
-      themeLocation = {
-        lat: position.coords.latitude,
-        lon: position.coords.longitude,
-        label: "",
-        source: "gps"
-      };
-      saveThemeLocation(themeLocation);
-      applyTheme();
-      renderSunPanel();
-      toast(i18n.t("sunGeoDone"));
-    }, function () {
-      elements.sunLocateBtn.disabled = false;
-      toast(i18n.t("sunGeoDenied"));
-    }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 6 * 3600000 });
+    themeTimer = window.setTimeout(applyTheme, delay);
   }
 
   function applyTheme() {
@@ -1416,7 +1322,6 @@
     elements.workStartInput.value = data.settings.workStart;
     elements.plannedHoursInput.value = String(data.settings.plannedHours);
     renderUpdateState();
-    renderSunPanel();
 
     elements.appVersion.textContent = "v" + APP_VERSION;
   }
@@ -1810,7 +1715,6 @@
     if (theme !== "auto" && theme !== "light" && theme !== "dark") return;
     data.settings.theme = theme;
     applyTheme();
-    renderSunPanel();
     persist();
   }
 
@@ -1891,7 +1795,6 @@
 
     elements.workStartInput.addEventListener("change", saveWorkStart);
     elements.plannedHoursInput.addEventListener("change", savePlannedHours);
-    elements.sunLocateBtn.addEventListener("click", requestThemeLocation);
 
     elements.livePlanMinus.addEventListener("click", function () { changePlanHours(-0.25); });
     elements.livePlanPlus.addEventListener("click", function () { changePlanHours(0.25); });

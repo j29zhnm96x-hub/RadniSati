@@ -1,5 +1,12 @@
 # Changes
 
+## v0.5.1 — 2026-10-20
+
+- Removed the sunrise/sunset panel, the location line and the "Odredi moju lokaciju" button from Settings — the auto theme is internal behaviour, not something the user should manage.
+- Geolocation is gone entirely: no permission prompt, no coordinates stored, no `radni-sati:theme-location` key.
+- Location is resolved silently and only from the device timezone (`Intl.DateTimeFormat().resolvedOptions().timeZone`, 30-city table, Zagreb fallback); the sunrise/sunset maths is unchanged.
+- Removed the now unused `sun*` strings and the panel styles; version bump to 0.5.1.
+
 ## v0.5.0 — 2026-10-20
 
 - Auto theme is now sun-based instead of following `prefers-color-scheme`: light from sunrise to sunset, dark otherwise.

@@ -1496,30 +1496,6 @@ fieldset.field {
   margin-top: 12px;
 }
 
-.theme-hint {
-  margin-top: 10px;
-}
-
-.sun-panel {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
-
-.sun-line {
-  margin-top: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.sun-line + .sun-line {
-  margin-top: 2px;
-}
-
-.sun-panel .btn-block {
-  margin-top: 10px;
-  font-size: 13.5px;
-}
-
 .btn:disabled {
   cursor: default;
   opacity: 0.55;
