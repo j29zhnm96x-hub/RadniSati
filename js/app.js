@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.5.1";
+  var APP_VERSION = "0.5.2";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -1892,6 +1892,12 @@
   function init() {
     cacheElements();
     data = store.load();
+    try {
+      /* Coordinates saved by 0.5.0 are no longer used or needed. */
+      window.localStorage.removeItem("radni-sati:theme-location");
+    } catch (error) {
+      /* Nothing to clean when storage is unavailable. */
+    }
     refreshFormatters();
     currentView = data.settings.rates.length ? "today" : "settings";
     bindEvents();

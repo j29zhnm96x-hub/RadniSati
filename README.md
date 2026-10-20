@@ -13,6 +13,10 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.5.2
+
+- A leftover location saved by 0.5.0 is deleted on launch; nothing about the location is kept on the device.
+
 ## What's new in 0.5.1
 
 - Postavke su opet čiste: nema prikaza izlaska/zalaska sunca, nema lokacije i nema gumba za lokaciju — automatska tema je interna stvar aplikacije.

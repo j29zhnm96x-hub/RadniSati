@@ -1,5 +1,10 @@
 # Changes
 
+## v0.5.2 — 2026-10-20
+
+- Removes the `radni-sati:theme-location` key left behind by 0.5.0 on every launch, so no coordinates stay stored on the device.
+- Version bump to 0.5.2 across manifest, asset queries and the service worker cache.
+
 ## v0.5.1 — 2026-10-20
 
 - Removed the sunrise/sunset panel, the location line and the "Odredi moju lokaciju" button from Settings — the auto theme is internal behaviour, not something the user should manage.
