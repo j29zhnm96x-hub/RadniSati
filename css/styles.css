@@ -1389,6 +1389,14 @@ fieldset.field {
   font-weight: 600;
 }
 
+.live-save-btn {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+
 .stepper {
   display: flex;
   align-items: center;

@@ -59,6 +59,10 @@
       livePlanLess: "Smanji planirane sate",
       livePlanMore: "Povećaj planirane sate",
       livePlanValue: "{hours} h",
+      liveSavePlan: "Spremi dan · {hours} h",
+      liveDaySaved: "Dan je spremljen",
+      toastDayClosed: "Dan spremljen · {hours} h",
+      toastDayAutoSaved: "Dan automatski spremljen · {hours} h",
 
       historySubtitle: "Svi zabilježeni dani, najnoviji prvi.",
       historyEmptyTitle: "Još nema unosa",
@@ -210,6 +214,10 @@
       livePlanLess: "Decrease planned hours",
       livePlanMore: "Increase planned hours",
       livePlanValue: "{hours} h",
+      liveSavePlan: "Save day · {hours} h",
+      liveDaySaved: "Day saved",
+      toastDayClosed: "Day saved · {hours} h",
+      toastDayAutoSaved: "Day saved automatically · {hours} h",
 
       historySubtitle: "Every recorded day, newest first.",
       historyEmptyTitle: "No entries yet",

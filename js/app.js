@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.3.0";
+  var APP_VERSION = "0.4.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -16,6 +16,10 @@
   var elements = {};
   var liveTimer = null;
   var liveDate = null;
+  var autoSaveKey = null;
+  var witnessedDate = null;
+  var lastSeenWrite = 0;
+  var LAST_SEEN_KEY = "radni-sati:last-seen";
   var updateState = { available: null, statusKey: null, busy: false };
   var UPDATE_DISMISS_KEY = "radni-sati:update-dismissed";
 
@@ -31,7 +35,7 @@
       "todayTravelValue", "todayOtherValue", "todayPreviewTotal", "todayTotal",
       "todayHeroFormula", "todayDelete", "todaySave",
       "liveCard", "liveAmount", "liveHint", "liveClock", "liveState", "liveProgressBar",
-      "livePlanMinus", "livePlanPlus", "livePlanValue",
+      "livePlanMinus", "livePlanPlus", "livePlanValue", "liveSaveDay",
       "updateBanner", "updateBannerText", "updateBannerApply", "updateBannerDismiss",
       "historyEmpty", "historyGroups",
       "monthPrev", "monthNext", "monthLabel", "monthTotal", "monthFormula", "monthDays",
@@ -250,36 +254,59 @@
     return data.settings.plannedHours;
   }
 
-  function liveSnapshot(now) {
+  function isDayClosed(dateISO) {
+    return Boolean(data.closed && data.closed[dateISO] === true);
+  }
+
+  function clearDayClosed(dateISO) {
+    if (data.closed && data.closed[dateISO]) {
+      delete data.closed[dateISO];
+    }
+  }
+
+  function shiftBounds(now) {
     var parts = data.settings.workStart.split(":");
     var start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), Number(parts[0]), Number(parts[1]), 0, 0);
     var dateISO = isoFromDate(now);
     var plan = planFor(dateISO);
-    var rate = effectiveRate(dateISO);
-    var planMs = plan * 3600000;
-    var end = new Date(start.getTime() + planMs);
+    var end = new Date(start.getTime() + plan * 3600000);
     var nextStart = new Date(start.getTime());
     nextStart.setDate(nextStart.getDate() + 1);
-    var elapsedMs = now.getTime() - start.getTime();
+    return { dateISO: dateISO, plan: plan, start: start, end: end, nextStart: nextStart };
+  }
+
+  function liveSnapshot(now) {
+    var bounds = shiftBounds(now);
+    var rate = effectiveRate(bounds.dateISO);
+    var plan = bounds.plan;
+    var planMs = plan * 3600000;
+    var elapsedMs = now.getTime() - bounds.start.getTime();
+    var closed = isDayClosed(bounds.dateISO);
     var workedMs = Math.max(0, Math.min(elapsedMs, planMs));
     var state = "running";
-    var target = end;
+    var target = bounds.end;
     if (plan <= 0) {
       state = "off";
-      target = nextStart;
+      target = bounds.nextStart;
+      workedMs = 0;
+    } else if (closed) {
+      state = "finished";
+      target = bounds.nextStart;
+      workedMs = planMs;
     } else if (elapsedMs < 0) {
       state = "before";
-      target = start;
+      target = bounds.start;
     } else if (elapsedMs >= planMs) {
       state = "finished";
-      target = nextStart;
+      target = bounds.nextStart;
     }
     return {
       plan: plan,
       rate: rate,
       amount: (workedMs / 3600000) * rate,
-      progress: planMs > 0 ? Math.max(0, Math.min(1, elapsedMs / planMs)) : 0,
+      progress: state === "finished" ? 1 : (planMs > 0 ? Math.max(0, Math.min(1, elapsedMs / planMs)) : 0),
       state: state,
+      closed: closed,
       target: target,
       remainingMs: Math.max(0, target.getTime() - now.getTime())
     };
@@ -291,6 +318,114 @@
     var minutes = Math.floor((total % 3600) / 60);
     var seconds = total % 60;
     return pad2(hours) + ":" + pad2(minutes) + ":" + pad2(seconds);
+  }
+
+  function recordLastSeen(now) {
+    if (now.getTime() - lastSeenWrite < 20000) return;
+    lastSeenWrite = now.getTime();
+    try {
+      window.localStorage.setItem(LAST_SEEN_KEY, String(now.getTime()));
+    } catch (error) {
+      /* The countdown still works when storage is unavailable. */
+    }
+  }
+
+  function wasShiftWitnessed(now, bounds) {
+    if (witnessedDate === bounds.dateISO) return true;
+    var seen = 0;
+    try {
+      seen = Number(window.localStorage.getItem(LAST_SEEN_KEY));
+    } catch (error) {
+      seen = 0;
+    }
+    if (!isFinite(seen) || seen <= 0) return false;
+    var seenAt = new Date(seen);
+    if (isoFromDate(seenAt) !== bounds.dateISO) return false;
+    return seen >= bounds.start.getTime() && seen < bounds.end.getTime();
+  }
+
+  function isTodayFormDirty(entry) {
+    if (elements.todayForm.dataset.entryDate !== todayISO()) return true;
+    var raw = readRawEntry("today");
+    var baseHours = entry ? entry.hours : 0;
+    var baseTravel = entry ? entry.travel : 0;
+    var baseOther = entry ? entry.other : 0;
+    var baseNote = entry ? entry.note : "";
+    return Math.abs(raw.hours - baseHours) > 0.0001 ||
+      Math.abs(raw.travel - baseTravel) > 0.0001 ||
+      Math.abs(raw.other - baseOther) > 0.0001 ||
+      raw.note !== baseNote;
+  }
+
+  function saveDayFromPlan(iso, options) {
+    var plan = planFor(iso);
+    if (plan <= 0) return false;
+
+    var entry = getEntry(iso);
+    if (entry && entry.auto !== true && !(options && options.force)) return false;
+
+    var travel = entry ? entry.travel : 0;
+    var other = entry ? entry.other : 0;
+    var note = entry ? entry.note : "";
+    if (options && options.fromForm) {
+      var raw = readRawEntry("today");
+      travel = round2(raw.travel);
+      other = round2(raw.other);
+      note = raw.note.slice(0, 500);
+    }
+
+    data.days[iso] = {
+      hours: round4(plan),
+      travel: travel,
+      other: other,
+      note: note,
+      auto: true
+    };
+    return persist();
+  }
+
+  function maybeAutoSaveDay(snapshot, now) {
+    if (snapshot.state !== "finished" || snapshot.closed) return;
+    if (snapshot.plan <= 0) return;
+    var bounds = shiftBounds(now);
+    if (!wasShiftWitnessed(now, bounds)) return;
+    var key = bounds.dateISO + ":" + snapshot.plan;
+    if (autoSaveKey === key) return;
+
+    var entry = getEntry(bounds.dateISO);
+    if (entry && entry.auto !== true) return;
+
+    autoSaveKey = key;
+    if (!saveDayFromPlan(bounds.dateISO)) return;
+
+    if (isTodayFormDirty(entry)) {
+      updateTodayEntryControls();
+      updateTodayPreview();
+    } else {
+      fillTodayForm();
+    }
+    renderHistory();
+    renderMonth();
+    toast(i18n.t("toastDayAutoSaved", { hours: formatNumber(snapshot.plan) }));
+  }
+
+  function closeTodayWithPlan() {
+    var iso = todayISO();
+    var plan = planFor(iso);
+    if (plan <= 0) return;
+    if (!saveDayFromPlan(iso, { force: true, fromForm: true })) return;
+
+    if (!data.closed) data.closed = {};
+    data.closed[iso] = true;
+    autoSaveKey = iso + ":" + plan;
+    witnessedDate = iso;
+    persist();
+
+    fillTodayForm();
+    renderHistory();
+    renderMonth();
+    renderLiveCard(new Date());
+    toast(i18n.t("toastDayClosed", { hours: formatNumber(plan) }));
   }
 
   function renderLiveCard(now) {
@@ -319,6 +454,19 @@
     elements.livePlanValue.textContent = i18n.t("livePlanValue", { hours: formatNumber(snapshot.plan) });
     elements.livePlanMinus.disabled = snapshot.plan <= 0;
     elements.livePlanPlus.disabled = snapshot.plan >= 24;
+
+    elements.liveSaveDay.hidden = snapshot.plan <= 0;
+    elements.liveSaveDay.disabled = snapshot.plan <= 0 || snapshot.closed;
+    elements.liveSaveDay.textContent = snapshot.closed
+      ? i18n.t("liveDaySaved")
+      : i18n.t("liveSavePlan", { hours: formatNumber(snapshot.plan) });
+
+    if (snapshot.state === "running") {
+      witnessedDate = isoFromDate(time);
+      recordLastSeen(time);
+    } else if (snapshot.state === "finished") {
+      maybeAutoSaveDay(snapshot, time);
+    }
   }
 
   function changePlanHours(delta) {
@@ -327,6 +475,9 @@
     var next = Math.max(0, Math.min(24, Math.round((current + delta) * 4) / 4));
     if (next === current) return;
     data.plans[iso] = next;
+    clearDayClosed(iso);
+    autoSaveKey = null;
+    witnessedDate = iso;
     persist();
     renderLiveCard(new Date());
   }
@@ -341,8 +492,18 @@
       return;
     }
     liveDate = iso;
-    if (document.hidden || currentView !== "today") return;
-    renderLiveCard(now);
+    if (document.hidden) return;
+
+    var snapshot = liveSnapshot(now);
+    if (snapshot.state === "running") {
+      witnessedDate = iso;
+      recordLastSeen(now);
+    }
+    if (currentView === "today") {
+      renderLiveCard(now);
+    } else if (snapshot.state === "finished") {
+      maybeAutoSaveDay(snapshot, now);
+    }
   }
 
   function startLiveClock() {
@@ -1088,8 +1249,11 @@
     ).then(function (confirmed) {
       if (!confirmed) return;
       delete data.days[iso];
+      clearDayClosed(iso);
+      autoSaveKey = iso + ":" + planFor(iso);
       var saved = persist();
       fillTodayForm();
+      renderLiveCard(new Date());
       renderHistory();
       renderMonth();
       if (saved) toast(i18n.t("toastDeleted"));
@@ -1126,6 +1290,8 @@
     ).then(function (confirmed) {
       if (!confirmed) return;
       delete data.days[dateISO];
+      clearDayClosed(dateISO);
+      if (dateISO === todayISO()) autoSaveKey = dateISO + ":" + planFor(dateISO);
       var saved = persist();
       closeEditor();
       editingDate = null;
@@ -1465,6 +1631,7 @@
 
     elements.livePlanMinus.addEventListener("click", function () { changePlanHours(-0.25); });
     elements.livePlanPlus.addEventListener("click", function () { changePlanHours(0.25); });
+    elements.liveSaveDay.addEventListener("click", closeTodayWithPlan);
 
     elements.checkUpdateBtn.addEventListener("click", function () { checkForUpdate(); });
     elements.updateNowBtn.addEventListener("click", performUpdate);

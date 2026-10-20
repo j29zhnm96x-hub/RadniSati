@@ -13,6 +13,14 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.4.0
+
+- The day now saves itself: when the countdown reaches zero the planned hours are written into Today's entry, History and the month total, with a confirmation toast.
+- **Spremi dan** button on the Today card saves the full planned hours immediately and ends the countdown, for when you do not want to wait until the shift runs out.
+- Both flows stay dynamic: pressing `+` after the day was saved reopens the countdown (8 h → 9 h keeps counting to 17:00) and the new end saves the new hours; pressing `−` recalculates and saves the reduced hours.
+- A day is only auto-saved when the app was actually open during the shift (live session or a heartbeat left in `localStorage`), so days off and days you never opened the app for are not credited.
+- Manually typed entries are never overwritten by the automatic save, and deleting a day does not trigger it again for the same plan.
+
 ## What's new in 0.3.0
 
 - The clock on the Today card is now a live countdown instead of the wall-clock time.
@@ -45,3 +53,7 @@ Upload the whole folder to any static HTTPS host. There is no build step, no pac
 ## Data
 
 The app uses one versioned `localStorage` key: `radni-sati:v1`. Settings includes JSON export and import for backups. Clearing site data removes local records.
+
+`radni-sati:last-seen` is a separate heartbeat timestamp written while the shift is running. It is not user data and is not exported; it only tells the app whether it was open during today's shift so the automatic day save can be trusted.
+
+Day entries saved by the countdown are marked `auto: true` internally and stay editable like any other entry. As soon as you save the day manually, the entry becomes yours and the automatic save never overwrites it.

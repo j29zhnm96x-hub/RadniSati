@@ -56,6 +56,7 @@
         rates: []
       },
       plans: {},
+      closed: {},
       days: {}
     };
   }
@@ -131,6 +132,16 @@
       }
     }
 
+    if (isPlainObject(input.closed)) {
+      var closedKeys = Object.keys(input.closed);
+      for (var c = 0; c < closedKeys.length; c += 1) {
+        var closedDate = closedKeys[c];
+        if (!isValidDateKey(closedDate)) continue;
+        if (input.closed[closedDate] !== true) continue;
+        out.closed[closedDate] = true;
+      }
+    }
+
     if (hasDays) {
       var rawDays = input.days;
       var keys = Object.keys(rawDays);
@@ -149,7 +160,8 @@
           hours: round4(typeof rawDay.hours === "number" ? rawDay.hours : 0),
           travel: round2(typeof rawDay.travel === "number" ? rawDay.travel : 0),
           other: round2(typeof rawDay.other === "number" ? rawDay.other : 0),
-          note: note
+          note: note,
+          auto: rawDay.auto === true
         };
       }
     }

@@ -1,5 +1,17 @@
 # Changes
 
+## v0.4.0 — 2026-10-20
+
+- Automatic day save: when the live countdown reaches the end of the shift the app writes the planned hours into today's entry, then refreshes History, the month totals and the Today form, with a toast confirmation.
+- Auto-save only fires when the app actually witnessed the shift: either the countdown was running in the session or a `radni-sati:last-seen` heartbeat from today falls inside the shift window. Days off and days the app was never opened for stay untouched.
+- Extended shifts save the extended hours: extending while finished reopens the countdown (8 h → 9 h keeps counting to 17:00) and the entry follows to 9 h at the new end.
+- New **Spremi dan · X h** button on the Today card saves the full planned hours at once and ends the countdown, for users who do not want to wait.
+- Closed days persist across reloads through a new `closed` date map; changing the plan with `−` / `+` clears the flag and recalculates.
+- Manual entries are protected: auto-save never overwrites an entry that was typed or edited by the user (`auto` flag on day entries).
+- Deleting a day clears its closed flag and suppresses the automatic re-save for that same plan.
+- Storage schema stays at version 1: `closed` date→true map, `days[*].auto` boolean, both optional and backward compatible; export/import includes them.
+- Version bump to 0.4.0 across manifest, asset queries and the service worker cache.
+
 ## v0.3.0 — 2026-10-20
 
 - The Today live card clock became a countdown instead of the current time.
