@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.5.2";
+  var APP_VERSION = "0.6.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -47,7 +47,8 @@
       "rateAmountError", "rateDate", "rateDateError", "rateHistoryList", "rateHistoryEmpty",
       "allowanceToggle", "allowanceAmount", "allowanceError", "themeControl",
       "languageControl", "exportBtn", "importBtn", "importFile", "clearBtn", "appVersion",
-      "workStartInput", "plannedHoursInput",
+      "workStartInput", "plannedHoursInput", "workDaysControl",
+      "holidayDate", "holidayAdd", "holidayError", "holidayList", "holidayEmpty",
       "updateCurrentVersion", "checkUpdateBtn", "updateStatus", "updateAvailable",
       "updateAvailableText", "updateNowBtn",
       "dayDialog", "editorForm", "editorTitle", "editorRate", "editorClose", "editorHours",
@@ -130,6 +131,9 @@
     formatters.weekday = new Intl.DateTimeFormat(locale, {
       weekday: "long"
     });
+    formatters.weekdayShort = new Intl.DateTimeFormat(locale, {
+      weekday: "short"
+    });
     formatters.monthYear = new Intl.DateTimeFormat(locale, {
       month: "long",
       year: "numeric"
@@ -177,6 +181,10 @@
 
   function formatWeekday(value) {
     return formatters.weekday.format(dateFromISO(value));
+  }
+
+  function formatWeekdayShort(value) {
+    return formatters.weekdayShort.format(dateFromISO(value));
   }
 
   function formatMonthYear(year, month) {
@@ -249,11 +257,35 @@
     return false;
   }
 
+  function hasPlan(dateISO) {
+    return Object.prototype.hasOwnProperty.call(data.plans, dateISO);
+  }
+
+  function isHoliday(dateISO) {
+    return Boolean(data.holidays && data.holidays[dateISO] === true);
+  }
+
+  function isWorkDay(dateISO) {
+    if (isHoliday(dateISO)) return false;
+    var weekday = dateFromISO(dateISO).getDay();
+    return data.settings.workDays.indexOf(weekday) !== -1;
+  }
+
   function planFor(dateISO) {
-    if (Object.prototype.hasOwnProperty.call(data.plans, dateISO)) {
-      return data.plans[dateISO];
+    if (hasPlan(dateISO)) return data.plans[dateISO];
+    return isWorkDay(dateISO) ? data.settings.plannedHours : 0;
+  }
+
+  function nextWorkingStart(fromDate) {
+    var parts = data.settings.workStart.split(":");
+    var candidate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate(), 0, 0, 0, 0);
+    candidate.setDate(candidate.getDate() + 1);
+    for (var i = 0; i < 400; i += 1) {
+      if (isWorkDay(isoFromDate(candidate))) break;
+      candidate.setDate(candidate.getDate() + 1);
     }
-    return data.settings.plannedHours;
+    candidate.setHours(Number(parts[0]), Number(parts[1]), 0, 0);
+    return candidate;
   }
 
   function isDayClosed(dateISO) {
@@ -272,9 +304,13 @@
     var dateISO = isoFromDate(now);
     var plan = planFor(dateISO);
     var end = new Date(start.getTime() + plan * 3600000);
-    var nextStart = new Date(start.getTime());
-    nextStart.setDate(nextStart.getDate() + 1);
-    return { dateISO: dateISO, plan: plan, start: start, end: end, nextStart: nextStart };
+    return {
+      dateISO: dateISO,
+      plan: plan,
+      start: start,
+      end: end,
+      nextStart: nextWorkingStart(now)
+    };
   }
 
   function liveSnapshot(now) {
@@ -309,6 +345,7 @@
       progress: state === "finished" ? 1 : (planMs > 0 ? Math.max(0, Math.min(1, elapsedMs / planMs)) : 0),
       state: state,
       closed: closed,
+      holiday: isHoliday(bounds.dateISO),
       target: target,
       remainingMs: Math.max(0, target.getTime() - now.getTime())
     };
@@ -320,6 +357,17 @@
     var minutes = Math.floor((total % 3600) / 60);
     var seconds = total % 60;
     return pad2(hours) + ":" + pad2(minutes) + ":" + pad2(seconds);
+  }
+
+  function formatRemaining(ms) {
+    var total = Math.max(0, Math.floor(ms / 1000));
+    var days = Math.floor(total / 86400);
+    var clock = formatCountdown((total % 86400) * 1000);
+    return {
+      days: days,
+      clock: clock,
+      text: days > 0 ? i18n.t("countdownDays", { days: days, time: clock }) : clock
+    };
   }
 
   function recordLastSeen(now) {
@@ -436,14 +484,16 @@
     var snapshot = liveSnapshot(time);
     var hasRate = snapshot.rate > 0;
 
-    elements.liveClock.textContent = formatCountdown(snapshot.remainingMs);
+    var remaining = formatRemaining(snapshot.remainingMs);
+    elements.liveClock.textContent = remaining.text;
+    elements.liveClock.classList.toggle("is-days", remaining.days > 0);
     elements.liveAmount.hidden = !hasRate;
     elements.liveHint.hidden = hasRate;
     if (hasRate) elements.liveAmount.textContent = formatLiveCurrency(snapshot.amount);
 
     var stateText = "";
     if (snapshot.state === "off") {
-      stateText = i18n.t("liveDayOff");
+      stateText = i18n.t(snapshot.holiday ? "liveHoliday" : "liveDayOff");
     } else if (snapshot.state === "before") {
       stateText = i18n.t("liveStartsAt", { time: data.settings.workStart });
     } else if (snapshot.state === "finished") {
@@ -474,7 +524,12 @@
   function changePlanHours(delta) {
     var iso = todayISO();
     var current = planFor(iso);
-    var next = Math.max(0, Math.min(24, Math.round((current + delta) * 4) / 4));
+    var next;
+    if (delta > 0 && current <= 0) {
+      next = Math.max(0, Math.min(24, data.settings.plannedHours));
+    } else {
+      next = Math.max(0, Math.min(24, Math.round((current + delta) * 4) / 4));
+    }
     if (next === current) return;
     data.plans[iso] = next;
     clearDayClosed(iso);
@@ -1321,6 +1376,8 @@
 
     elements.workStartInput.value = data.settings.workStart;
     elements.plannedHoursInput.value = String(data.settings.plannedHours);
+    renderWorkDays();
+    renderHolidays();
     renderUpdateState();
 
     elements.appVersion.textContent = "v" + APP_VERSION;
@@ -1616,6 +1673,107 @@
     renderLiveCard(new Date());
   }
 
+  function renderWorkDays() {
+    var buttons = elements.workDaysControl.querySelectorAll("[data-weekday]");
+    for (var i = 0; i < buttons.length; i += 1) {
+      var day = Number(buttons[i].getAttribute("data-weekday"));
+      var active = data.settings.workDays.indexOf(day) !== -1;
+      buttons[i].setAttribute("aria-pressed", active ? "true" : "false");
+      buttons[i].classList.toggle("is-on", active);
+    }
+  }
+
+  function toggleWorkDay(day) {
+    if (!isFinite(day) || day < 0 || day > 6) return;
+    var days = data.settings.workDays.slice();
+    var index = days.indexOf(day);
+    if (index === -1) {
+      days.push(day);
+    } else {
+      if (days.length === 1) {
+        toast(i18n.t("workDaysEmpty"));
+        return;
+      }
+      days.splice(index, 1);
+    }
+    days.sort(function (a, b) { return a - b; });
+    data.settings.workDays = days;
+
+    var iso = todayISO();
+    if (!isWorkDay(iso)) {
+      delete data.plans[iso];
+      clearDayClosed(iso);
+    }
+    persist();
+    renderWorkDays();
+    renderToday(false);
+  }
+
+  function renderHolidays() {
+    var iso = todayISO();
+    var dates = Object.keys(data.holidays).filter(function (date) {
+      return date >= iso;
+    }).sort();
+
+    while (elements.holidayList.firstChild) {
+      elements.holidayList.removeChild(elements.holidayList.firstChild);
+    }
+
+    dates.forEach(function (date) {
+      var item = document.createElement("li");
+      item.className = "holiday-item";
+
+      var label = document.createElement("span");
+      label.className = "holiday-date";
+      label.textContent = formatDateNumeric(date) + " · " + capitalizeFirst(formatWeekdayShort(date));
+
+      var remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "icon-btn holiday-remove";
+      remove.setAttribute("data-holiday", date);
+      remove.setAttribute("aria-label", i18n.t("holidayDeleteAria", { date: formatDateNumeric(date) }));
+      remove.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
+
+      item.appendChild(label);
+      item.appendChild(remove);
+      elements.holidayList.appendChild(item);
+    });
+
+    elements.holidayEmpty.hidden = dates.length > 0;
+  }
+
+  function addHoliday() {
+    var value = elements.holidayDate.value;
+    if (!store.isValidDateKey(value)) {
+      setFieldError(elements.holidayDate, elements.holidayError, "holidayInvalid");
+      return;
+    }
+    clearFieldError(elements.holidayDate, elements.holidayError);
+    if (isHoliday(value)) {
+      toast(i18n.t("holidayExists"));
+      return;
+    }
+    data.holidays[value] = true;
+    if (value === todayISO()) {
+      delete data.plans[value];
+      clearDayClosed(value);
+    }
+    persist();
+    elements.holidayDate.value = "";
+    renderHolidays();
+    renderToday(false);
+    toast(i18n.t("holidayAdded"));
+  }
+
+  function removeHoliday(dateISO) {
+    if (!isHoliday(dateISO)) return;
+    delete data.holidays[dateISO];
+    persist();
+    renderHolidays();
+    renderToday(false);
+    toast(i18n.t("holidayRemoved"));
+  }
+
   function exportData() {
     var payload = {
       app: "radni-sati",
@@ -1795,6 +1953,20 @@
 
     elements.workStartInput.addEventListener("change", saveWorkStart);
     elements.plannedHoursInput.addEventListener("change", savePlannedHours);
+    elements.workDaysControl.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-weekday]");
+      if (!button) return;
+      toggleWorkDay(Number(button.getAttribute("data-weekday")));
+    });
+    elements.holidayAdd.addEventListener("click", addHoliday);
+    elements.holidayDate.addEventListener("input", function () {
+      clearFieldError(elements.holidayDate, elements.holidayError);
+    });
+    elements.holidayList.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-holiday]");
+      if (!button) return;
+      removeHoliday(button.getAttribute("data-holiday"));
+    });
 
     elements.livePlanMinus.addEventListener("click", function () { changePlanHours(-0.25); });
     elements.livePlanPlus.addEventListener("click", function () { changePlanHours(0.25); });

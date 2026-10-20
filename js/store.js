@@ -53,10 +53,12 @@
         allowanceAmount: 5,
         workStart: "08:00",
         plannedHours: 8,
+        workDays: [1, 2, 3, 4, 5],
         rates: []
       },
       plans: {},
       closed: {},
+      holidays: {},
       days: {}
     };
   }
@@ -106,6 +108,23 @@
         out.settings.plannedHours = snapQuarter(rawSettings.plannedHours);
       }
 
+      if (Array.isArray(rawSettings.workDays)) {
+        var seenWorkDays = {};
+        var workDays = [];
+        for (var w = 0; w < rawSettings.workDays.length; w += 1) {
+          var workDay = rawSettings.workDays[w];
+          if (typeof workDay !== "number" || !isFinite(workDay) || workDay < 0 || workDay > 6) continue;
+          if (Math.floor(workDay) !== workDay) continue;
+          if (seenWorkDays[workDay]) continue;
+          seenWorkDays[workDay] = true;
+          workDays.push(workDay);
+        }
+        if (workDays.length) {
+          workDays.sort(function (a, b) { return a - b; });
+          out.settings.workDays = workDays;
+        }
+      }
+
       if (Array.isArray(rawSettings.rates)) {
         var seenIds = {};
         var byDate = {};
@@ -139,6 +158,16 @@
         if (!isValidDateKey(closedDate)) continue;
         if (input.closed[closedDate] !== true) continue;
         out.closed[closedDate] = true;
+      }
+    }
+
+    if (isPlainObject(input.holidays)) {
+      var holidayKeys = Object.keys(input.holidays);
+      for (var h = 0; h < holidayKeys.length; h += 1) {
+        var holidayDate = holidayKeys[h];
+        if (!isValidDateKey(holidayDate)) continue;
+        if (input.holidays[holidayDate] !== true) continue;
+        out.holidays[holidayDate] = true;
       }
     }
 

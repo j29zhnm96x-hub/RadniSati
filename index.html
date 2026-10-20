@@ -14,10 +14,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Radni sati">
 
-  <link rel="manifest" href="./manifest.webmanifest?v=0.5.2">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.5.2">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.5.2">
-  <link rel="stylesheet" href="./css/styles.css?v=0.5.2">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.6.0">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.6.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.6.0">
+  <link rel="stylesheet" href="./css/styles.css?v=0.6.0">
 
   <script>
     (function () {
@@ -383,6 +383,33 @@
           <p class="section-hint field-help" id="workTimeHint" data-i18n="workTimeHint">Koristi se za dnevnu karticu zarade. Ne mijenja spremljene dane.</p>
         </section>
 
+        <section class="card" aria-labelledby="workDaysHeading">
+          <div class="card-heading">
+            <h2 id="workDaysHeading" data-i18n="workDaysTitle">Radni dani</h2>
+          </div>
+          <div class="weekday-grid" id="workDaysControl" role="group" data-i18n-aria-label="workDaysAria" aria-label="Radni dani u tjednu">
+            <button class="weekday-chip" type="button" data-weekday="1" aria-pressed="true" data-i18n="weekdayMon">Pon</button>
+            <button class="weekday-chip" type="button" data-weekday="2" aria-pressed="true" data-i18n="weekdayTue">Uto</button>
+            <button class="weekday-chip" type="button" data-weekday="3" aria-pressed="true" data-i18n="weekdayWed">Sri</button>
+            <button class="weekday-chip" type="button" data-weekday="4" aria-pressed="true" data-i18n="weekdayThu">Čet</button>
+            <button class="weekday-chip" type="button" data-weekday="5" aria-pressed="true" data-i18n="weekdayFri">Pet</button>
+            <button class="weekday-chip" type="button" data-weekday="6" aria-pressed="false" data-i18n="weekdaySat">Sub</button>
+            <button class="weekday-chip" type="button" data-weekday="0" aria-pressed="false" data-i18n="weekdaySun">Ned</button>
+          </div>
+          <p class="section-hint" data-i18n="workDaysHint">Neoznačeni dani se preskaču u odbrojavanju.</p>
+
+          <div class="field holiday-field">
+            <label for="holidayDate" data-i18n="holidaysLabel">Praznici i slobodni dani</label>
+            <div class="holiday-row">
+              <input class="field-input" id="holidayDate" type="date" autocomplete="off" aria-describedby="holidayError">
+              <button class="btn btn-secondary holiday-add" id="holidayAdd" type="button" data-i18n="holidayAdd">Dodaj</button>
+            </div>
+            <p class="field-error" id="holidayError" hidden></p>
+            <ul class="holiday-list" id="holidayList"></ul>
+            <p class="section-hint" id="holidayEmpty" data-i18n="holidayEmpty">Nema dodanih praznika.</p>
+          </div>
+        </section>
+
         <section class="card" aria-labelledby="appearanceHeading">
           <div class="card-heading">
             <h2 id="appearanceHeading" data-i18n="appearanceTitle">Izgled</h2>
@@ -439,7 +466,7 @@
           </div>
           <div class="update-version-row">
             <span class="update-version-label" data-i18n="currentVersion">Trenutna verzija</span>
-            <strong class="update-version-value" id="updateCurrentVersion">v0.5.2</strong>
+            <strong class="update-version-value" id="updateCurrentVersion">v0.6.0</strong>
           </div>
           <p class="section-hint" data-i18n="updateHint">Provjeri je li dostupna nova verzija aplikacije.</p>
           <button class="btn btn-secondary btn-block" id="checkUpdateBtn" type="button" data-i18n="checkUpdates">Provjeri ažuriranja</button>
@@ -450,7 +477,7 @@
           </div>
         </section>
 
-        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.5.2</span></p>
+        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.6.0</span></p>
       </div>
     </section>
   </main>
@@ -600,8 +627,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="./js/i18n.js?v=0.5.2"></script>
-  <script src="./js/store.js?v=0.5.2"></script>
-  <script src="./js/app.js?v=0.5.2"></script>
+  <script src="./js/i18n.js?v=0.6.0"></script>
+  <script src="./js/store.js?v=0.6.0"></script>
+  <script src="./js/app.js?v=0.6.0"></script>
 </body>
 </html>

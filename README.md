@@ -13,6 +13,14 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.6.0
+
+- **Radni dani** u Postavkama: sedam kockica (Pon–Ned) kojima odabereš koje dane radiš. Zadano je ponedjeljak–petak, a možeš uključiti i subotu ili bilo koju kombinaciju.
+- **Praznici i slobodni dani**: dodaj konkretan datum i taj dan se ne računa kao radni.
+- Odbrojavanje sada preskače neradne dane: u petak poslije posla pokazuje koliko je do **ponedjeljka u 08:00**, a ne do sutra.
+- Kad je odbrojavanje duže od 24 sata prikazuje se s danima, npr. `2 d 16:30:00`.
+- Na neradni dan kartica pokazuje `Danas ne radim` (ili `Praznik`), a prvi `+` odmah postavlja planirane sate umjesto 15 minuta, ako ipak radiš.
+
 ## What's new in 0.5.2
 
 - A leftover location saved by 0.5.0 is deleted on launch; nothing about the location is kept on the device.

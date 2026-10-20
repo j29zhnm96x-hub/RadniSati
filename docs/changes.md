@@ -1,5 +1,16 @@
 # Changes
 
+## v0.6.0 — 2026-10-20
+
+- Working days are configurable: `settings.workDays` holds weekday indexes (0 = Sunday) and the Settings card shows seven chips (Pon–Ned) that toggle individual days. Default stays Monday–Friday.
+- Holidays: new `holidays` date→true map with a date field, "Dodaj" and a removable list of upcoming dates in Settings.
+- The countdown now targets the next **working** start instead of tomorrow: Friday after work counts to Monday 08:00, weekends and holidays are skipped, and a run of holidays is skipped too.
+- Non-working days have a plan of 0, so the live card shows `Danas ne radim` (or `Praznik` on a holiday), the amount stays 0, the save button hides and nothing is auto-saved.
+- An explicit per-day plan still wins on a day off, and the first `+` on a day off starts from the configured planned hours instead of 15 minutes.
+- Countdowns longer than 24 h render with days (`2 d 16:30:00`) and use a slightly smaller clock font.
+- Storage stays at schema 1: `settings.workDays` and `holidays` are optional and backward compatible (old data gets Monday–Friday and no holidays); export/import includes both.
+- Tests added for the working-day maths (20 unit checks) and the settings UI (27 browser checks); version bump to 0.6.0.
+
 ## v0.5.2 — 2026-10-20
 
 - Removes the `radni-sati:theme-location` key left behind by 0.5.0 on every launch, so no coordinates stay stored on the device.
