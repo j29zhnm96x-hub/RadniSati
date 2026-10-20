@@ -1,5 +1,14 @@
 # Changes
 
+## v0.3.0 — 2026-10-20
+
+- The Today live card clock became a countdown instead of the current time.
+- Before work starts it counts down to `settings.workStart`; while working it counts down to start + planned hours for that date.
+- Planned hours changed with the `−` / `+` stepper recalculate the target instantly, so the countdown, the accrued amount and the progress bar all adapt in real time (extending 8 h to 10 h adds two hours of countdown and earnings; shortening it cuts the countdown immediately).
+- After the shift ends, or on a day off, the countdown points at the next day's start time.
+- New strings `liveRemaining` and `liveNextStart` replace `liveRunning` / `liveFinished` in Croatian and English.
+- Version bump to 0.3.0 across manifest, asset queries and the service worker cache; storage schema unchanged.
+
 ## v0.1.0 — 2026-10-19
 
 - Initial release: today entry form, live earnings calculation, history by month, monthly salary totals and settings.

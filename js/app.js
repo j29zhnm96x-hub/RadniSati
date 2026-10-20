@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.2.0";
+  var APP_VERSION = "0.3.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -257,23 +257,40 @@
     var plan = planFor(dateISO);
     var rate = effectiveRate(dateISO);
     var planMs = plan * 3600000;
+    var end = new Date(start.getTime() + planMs);
+    var nextStart = new Date(start.getTime());
+    nextStart.setDate(nextStart.getDate() + 1);
     var elapsedMs = now.getTime() - start.getTime();
     var workedMs = Math.max(0, Math.min(elapsedMs, planMs));
     var state = "running";
+    var target = end;
     if (plan <= 0) {
       state = "off";
+      target = nextStart;
     } else if (elapsedMs < 0) {
       state = "before";
+      target = start;
     } else if (elapsedMs >= planMs) {
       state = "finished";
+      target = nextStart;
     }
     return {
       plan: plan,
       rate: rate,
       amount: (workedMs / 3600000) * rate,
       progress: planMs > 0 ? Math.max(0, Math.min(1, elapsedMs / planMs)) : 0,
-      state: state
+      state: state,
+      target: target,
+      remainingMs: Math.max(0, target.getTime() - now.getTime())
     };
+  }
+
+  function formatCountdown(ms) {
+    var total = Math.max(0, Math.floor(ms / 1000));
+    var hours = Math.floor(total / 3600);
+    var minutes = Math.floor((total % 3600) / 60);
+    var seconds = total % 60;
+    return pad2(hours) + ":" + pad2(minutes) + ":" + pad2(seconds);
   }
 
   function renderLiveCard(now) {
@@ -282,7 +299,7 @@
     var snapshot = liveSnapshot(time);
     var hasRate = snapshot.rate > 0;
 
-    elements.liveClock.textContent = pad2(time.getHours()) + ":" + pad2(time.getMinutes()) + ":" + pad2(time.getSeconds());
+    elements.liveClock.textContent = formatCountdown(snapshot.remainingMs);
     elements.liveAmount.hidden = !hasRate;
     elements.liveHint.hidden = hasRate;
     if (hasRate) elements.liveAmount.textContent = formatLiveCurrency(snapshot.amount);
@@ -293,9 +310,9 @@
     } else if (snapshot.state === "before") {
       stateText = i18n.t("liveStartsAt", { time: data.settings.workStart });
     } else if (snapshot.state === "finished") {
-      stateText = i18n.t("liveFinished");
+      stateText = i18n.t("liveNextStart");
     } else {
-      stateText = i18n.t("liveRunning");
+      stateText = i18n.t("liveRemaining");
     }
     elements.liveState.textContent = stateText;
     elements.liveProgressBar.style.width = (snapshot.progress * 100) + "%";
