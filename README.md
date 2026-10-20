@@ -13,6 +13,11 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.4.1
+
+- New app icon (512 px artwork: hard hat and clock). The 192 px icon and the 180 px Apple touch icon were regenerated from it at full quality.
+- Version bump so the installed PWA, the manifest and the service worker pick up the new artwork instead of the cached one.
+
 ## What's new in 0.4.0
 
 - The day now saves itself: when the countdown reaches zero the planned hours are written into Today's entry, History and the month total, with a confirmation toast.

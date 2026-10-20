@@ -1,5 +1,11 @@
 # Changes
 
+## v0.4.1 — 2026-10-20
+
+- New 512 px app icon supplied by the user (hard hat over a clock on a dark navy background).
+- `icons/icon-192.png` (192 px) and `icons/apple-touch-icon.png` (180 px) regenerated from the new artwork with Lanczos resampling; the source is fully opaque, so no transparency flattening was needed.
+- Version bump to 0.4.1 across `APP_VERSION`, `version.json`, manifest icon queries, `index.html` asset queries and the service worker cache, so installed devices fetch the new icon instead of the cached one.
+
 ## v0.4.0 — 2026-10-20
 
 - Automatic day save: when the live countdown reaches the end of the shift the app writes the planned hours into today's entry, then refreshes History, the month totals and the Today form, with a toast confirmation.
