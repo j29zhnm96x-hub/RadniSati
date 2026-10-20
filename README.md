@@ -13,6 +13,14 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.5.0
+
+- **Automatska tema sada prati sunce**, ne sistem: svijetla tema vrijedi od izlaska do zalaska sunca, tamna od zalaska do sljedećeg izlaska.
+- Izlazak i zalazak se računaju lokalno (NOAA/SunCalc algoritam), bez interneta i bez API-ja, pa radi i offline.
+- Lokacija se uzima iz vremenske zone (npr. `Europe/Zagreb` → Zagreb), a u Postavkama → Izgled gumb **Odredi moju lokaciju** preuzme točne GPS koordinate i zapamti ih.
+- Postavke pokazuju današnji izlazak i zalazak te lokaciju koja se koristi.
+- Tema se sama prebaci u trenutku zalaska/izlaska dok je app otvorena, i odmah pri povratku u app.
+
 ## What's new in 0.4.1
 
 - New app icon (512 px artwork: hard hat and clock). The 192 px icon and the 180 px Apple touch icon were regenerated from it at full quality.

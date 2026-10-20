@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.4.1";
+  var APP_VERSION = "0.5.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -20,6 +20,10 @@
   var witnessedDate = null;
   var lastSeenWrite = 0;
   var LAST_SEEN_KEY = "radni-sati:last-seen";
+  var THEME_LOCATION_KEY = "radni-sati:theme-location";
+  var THEME_DARK_KEY = "radni-sati:theme-dark";
+  var themeLocation = null;
+  var themeTimer = null;
   var updateState = { available: null, statusKey: null, busy: false };
   var UPDATE_DISMISS_KEY = "radni-sati:update-dismissed";
 
@@ -44,6 +48,7 @@
       "firstRunHint", "currentRateValue", "currentRateUnit", "rateForm", "rateAmount",
       "rateAmountError", "rateDate", "rateDateError", "rateHistoryList", "rateHistoryEmpty",
       "allowanceToggle", "allowanceAmount", "allowanceError", "themeControl",
+      "sunPanel", "sunTimes", "sunPlace", "sunLocateBtn",
       "languageControl", "exportBtn", "importBtn", "importFile", "clearBtn", "appVersion",
       "workStartInput", "plannedHoursInput",
       "updateCurrentVersion", "checkUpdateBtn", "updateStatus", "updateAvailable",
@@ -137,6 +142,10 @@
       day: "numeric",
       month: "long",
       year: "numeric"
+    });
+    formatters.time = new Intl.DateTimeFormat(locale, {
+      hour: "2-digit",
+      minute: "2-digit"
     });
   }
 
@@ -512,15 +521,267 @@
     liveTimer = window.setInterval(tickLive, 1000);
   }
 
+  var SUN_RAD = Math.PI / 180;
+  var SUN_DAY_MS = 86400000;
+  var SUN_J1970 = 2440588;
+  var SUN_J2000 = 2451545;
+  var SUN_OBLIQUITY = SUN_RAD * 23.4397;
+  var SUN_ZENITH = SUN_RAD * -0.833;
+
+  var TZ_PLACES = {
+    "Europe/Zagreb": { label: "Zagreb", lat: 45.815, lon: 15.982 },
+    "Europe/Ljubljana": { label: "Ljubljana", lat: 46.056, lon: 14.505 },
+    "Europe/Sarajevo": { label: "Sarajevo", lat: 43.856, lon: 18.413 },
+    "Europe/Belgrade": { label: "Beograd", lat: 44.787, lon: 20.457 },
+    "Europe/Podgorica": { label: "Podgorica", lat: 42.441, lon: 19.263 },
+    "Europe/Skopje": { label: "Skoplje", lat: 41.998, lon: 21.425 },
+    "Europe/Vienna": { label: "Beč", lat: 48.208, lon: 16.373 },
+    "Europe/Budapest": { label: "Budimpešta", lat: 47.498, lon: 19.04 },
+    "Europe/Rome": { label: "Rim", lat: 41.903, lon: 12.496 },
+    "Europe/Berlin": { label: "Berlin", lat: 52.52, lon: 13.405 },
+    "Europe/Munich": { label: "München", lat: 48.135, lon: 11.582 },
+    "Europe/Prague": { label: "Prag", lat: 50.076, lon: 14.438 },
+    "Europe/Bratislava": { label: "Bratislava", lat: 48.146, lon: 17.107 },
+    "Europe/Warsaw": { label: "Varšava", lat: 52.23, lon: 21.012 },
+    "Europe/Paris": { label: "Pariz", lat: 48.857, lon: 2.352 },
+    "Europe/London": { label: "London", lat: 51.507, lon: -0.128 },
+    "Europe/Dublin": { label: "Dublin", lat: 53.35, lon: -6.26 },
+    "Europe/Amsterdam": { label: "Amsterdam", lat: 52.37, lon: 4.895 },
+    "Europe/Brussels": { label: "Bruxelles", lat: 50.851, lon: 4.352 },
+    "Europe/Zurich": { label: "Zürich", lat: 47.377, lon: 8.542 },
+    "Europe/Athens": { label: "Atina", lat: 37.984, lon: 23.728 },
+    "Europe/Bucharest": { label: "Bukurešt", lat: 44.427, lon: 26.103 },
+    "Europe/Sofia": { label: "Sofija", lat: 42.698, lon: 23.322 },
+    "Europe/Istanbul": { label: "Istanbul", lat: 41.008, lon: 28.978 },
+    "Europe/Stockholm": { label: "Stockholm", lat: 59.329, lon: 18.069 },
+    "Europe/Oslo": { label: "Oslo", lat: 59.914, lon: 10.752 },
+    "Europe/Copenhagen": { label: "Kopenhagen", lat: 55.677, lon: 12.568 },
+    "Europe/Helsinki": { label: "Helsinki", lat: 60.169, lon: 24.938 },
+    "Europe/Madrid": { label: "Madrid", lat: 40.417, lon: -3.704 },
+    "Europe/Lisbon": { label: "Lisabon", lat: 38.722, lon: -9.139 }
+  };
+
+  var THEME_FALLBACK_PLACE = { label: "Zagreb", lat: 45.815, lon: 15.982, source: "timezone" };
+
+  function isValidLatLon(lat, lon) {
+    return isFinite(lat) && isFinite(lon) &&
+      lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+  }
+
+  function readStoredThemeLocation() {
+    try {
+      var raw = window.localStorage.getItem(THEME_LOCATION_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || !isValidLatLon(Number(parsed.lat), Number(parsed.lon))) return null;
+      return {
+        lat: Number(parsed.lat),
+        lon: Number(parsed.lon),
+        label: typeof parsed.label === "string" ? parsed.label.slice(0, 60) : "",
+        source: parsed.source === "gps" ? "gps" : "timezone"
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function timezonePlace() {
+    try {
+      var zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (zone && TZ_PLACES[zone]) {
+        var place = TZ_PLACES[zone];
+        return { label: place.label, lat: place.lat, lon: place.lon, source: "timezone" };
+      }
+    } catch (error) {
+      return THEME_FALLBACK_PLACE;
+    }
+    return THEME_FALLBACK_PLACE;
+  }
+
+  function themePlace() {
+    if (!themeLocation) themeLocation = readStoredThemeLocation() || timezonePlace();
+    return themeLocation;
+  }
+
+  function saveThemeLocation(location) {
+    try {
+      window.localStorage.setItem(THEME_LOCATION_KEY, JSON.stringify(location));
+    } catch (error) {
+      /* Location stays in memory for this session. */
+    }
+  }
+
+  function placeLabel(location) {
+    if (location.source === "gps") return i18n.t("sunGpsPlace");
+    return location.label || THEME_FALLBACK_PLACE.label;
+  }
+
+  function sunToJulian(date) {
+    return date.valueOf() / SUN_DAY_MS - 0.5 + SUN_J1970;
+  }
+
+  function sunFromJulian(julian) {
+    return new Date((julian - SUN_J1970 + 0.5) * SUN_DAY_MS);
+  }
+
+  function sunToDays(date) {
+    return sunToJulian(date) - SUN_J2000;
+  }
+
+  function sunMeanAnomaly(days) {
+    return SUN_RAD * (357.5291 + 0.98560028 * days);
+  }
+
+  function sunEclipticLongitude(meanAnomaly) {
+    var center = SUN_RAD * (1.9148 * Math.sin(meanAnomaly) + 0.02 * Math.sin(2 * meanAnomaly) + 0.0003 * Math.sin(3 * meanAnomaly));
+    var perihelion = SUN_RAD * 102.9372;
+    return meanAnomaly + center + perihelion + Math.PI;
+  }
+
+  function sunDeclination(eclipticLongitude) {
+    return Math.asin(Math.sin(SUN_OBLIQUITY) * Math.sin(eclipticLongitude));
+  }
+
+  function sunJulianCycle(days, lw) {
+    return Math.round(days - 0.0009 - lw / (2 * Math.PI));
+  }
+
+  function sunApproxTransit(hourAngle, lw, n) {
+    return 0.0009 + (hourAngle + lw) / (2 * Math.PI) + n;
+  }
+
+  function sunTransitJ(transit, meanAnomaly, eclipticLongitude) {
+    return SUN_J2000 + transit + 0.0053 * Math.sin(meanAnomaly) - 0.0069 * Math.sin(2 * eclipticLongitude);
+  }
+
+  function sunHourAngle(phi, declination) {
+    var cos = (Math.sin(SUN_ZENITH) - Math.sin(phi) * Math.sin(declination)) / (Math.cos(phi) * Math.cos(declination));
+    if (cos < -1 || cos > 1) return NaN;
+    return Math.acos(cos);
+  }
+
+  function sunTimes(date, lat, lon) {
+    var lw = SUN_RAD * -lon;
+    var phi = SUN_RAD * lat;
+    var days = sunToDays(date);
+    var cycle = sunJulianCycle(days, lw);
+    var transit = sunApproxTransit(0, lw, cycle);
+    var meanAnomaly = sunMeanAnomaly(transit);
+    var longitude = sunEclipticLongitude(meanAnomaly);
+    var declination = sunDeclination(longitude);
+    var noon = sunTransitJ(transit, meanAnomaly, longitude);
+    var hourAngle = sunHourAngle(phi, declination);
+    var sunrise = null;
+    var sunset = null;
+    if (isFinite(hourAngle)) {
+      sunrise = sunFromJulian(sunTransitJ(sunApproxTransit(-hourAngle, lw, cycle), meanAnomaly, longitude));
+      sunset = sunFromJulian(sunTransitJ(sunApproxTransit(hourAngle, lw, cycle), meanAnomaly, longitude));
+    }
+    return { sunrise: sunrise, sunset: sunset, noon: sunFromJulian(noon) };
+  }
+
+  function isDarkNow(now) {
+    var place = themePlace();
+    var times = sunTimes(now, place.lat, place.lon);
+    if (!times.sunrise || !times.sunset) {
+      var hour = now.getHours();
+      return hour < 7 || hour >= 19;
+    }
+    var ms = now.getTime();
+    return ms < times.sunrise.getTime() || ms >= times.sunset.getTime();
+  }
+
+  function scheduleThemeRefresh() {
+    if (themeTimer) {
+      window.clearTimeout(themeTimer);
+      themeTimer = null;
+    }
+    if (!data || data.settings.theme !== "auto") return;
+
+    var now = new Date();
+    var place = themePlace();
+    var today = sunTimes(now, place.lat, place.lon);
+    var tomorrow = sunTimes(new Date(now.getTime() + SUN_DAY_MS), place.lat, place.lon);
+    var candidates = [];
+    [today.sunrise, today.sunset, tomorrow.sunrise, tomorrow.sunset].forEach(function (time) {
+      if (time) candidates.push(time.getTime());
+    });
+    var future = candidates.filter(function (ms) {
+      return ms > now.getTime() + 500;
+    }).sort(function (a, b) { return a - b; });
+    var delay = future.length ? future[0] - now.getTime() + 1000 : 3600000;
+    delay = Math.max(1000, Math.min(delay, 6 * 3600000));
+
+    themeTimer = window.setTimeout(function () {
+      applyTheme();
+      renderSunPanel();
+    }, delay);
+  }
+
+  function formatClock(date) {
+    if (!date) return "--:--";
+    return formatters.time.format(date);
+  }
+
+  function renderSunPanel() {
+    if (!elements.sunPanel) return;
+    var auto = data && data.settings.theme === "auto";
+    elements.sunPanel.hidden = !auto;
+    if (!auto) return;
+
+    var now = new Date();
+    var place = themePlace();
+    var times = sunTimes(now, place.lat, place.lon);
+    elements.sunTimes.textContent = i18n.t("sunTimes", {
+      sunrise: formatClock(times.sunrise),
+      sunset: formatClock(times.sunset)
+    });
+    elements.sunPlace.textContent = i18n.t("sunPlace", { place: placeLabel(place) });
+    elements.sunLocateBtn.disabled = !navigator.geolocation;
+  }
+
+  function requestThemeLocation() {
+    if (!navigator.geolocation) {
+      toast(i18n.t("sunGeoUnavailable"));
+      return;
+    }
+    elements.sunLocateBtn.disabled = true;
+    navigator.geolocation.getCurrentPosition(function (position) {
+      themeLocation = {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
+        label: "",
+        source: "gps"
+      };
+      saveThemeLocation(themeLocation);
+      applyTheme();
+      renderSunPanel();
+      toast(i18n.t("sunGeoDone"));
+    }, function () {
+      elements.sunLocateBtn.disabled = false;
+      toast(i18n.t("sunGeoDenied"));
+    }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 6 * 3600000 });
+  }
+
   function applyTheme() {
     var theme = data.settings.theme;
-    if (theme === "auto") {
-      document.documentElement.removeAttribute("data-theme");
+    var isDark;
+    if (theme === "dark") {
+      isDark = true;
+    } else if (theme === "light") {
+      isDark = false;
     } else {
-      document.documentElement.setAttribute("data-theme", theme);
+      isDark = isDarkNow(new Date());
     }
-    var isDark = theme === "dark" || (theme === "auto" && darkQuery.matches);
+
+    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
     elements.themeColorMeta.setAttribute("content", isDark ? "#11140f" : "#f4f1e9");
+    try {
+      window.localStorage.setItem(THEME_DARK_KEY, isDark ? "1" : "0");
+    } catch (error) {
+      /* The theme still applies without the early-paint hint. */
+    }
+    scheduleThemeRefresh();
   }
 
   function updateDocumentTitle() {
@@ -1155,6 +1416,7 @@
     elements.workStartInput.value = data.settings.workStart;
     elements.plannedHoursInput.value = String(data.settings.plannedHours);
     renderUpdateState();
+    renderSunPanel();
 
     elements.appVersion.textContent = "v" + APP_VERSION;
   }
@@ -1548,6 +1810,7 @@
     if (theme !== "auto" && theme !== "light" && theme !== "dark") return;
     data.settings.theme = theme;
     applyTheme();
+    renderSunPanel();
     persist();
   }
 
@@ -1628,6 +1891,7 @@
 
     elements.workStartInput.addEventListener("change", saveWorkStart);
     elements.plannedHoursInput.addEventListener("change", savePlannedHours);
+    elements.sunLocateBtn.addEventListener("click", requestThemeLocation);
 
     elements.livePlanMinus.addEventListener("click", function () { changePlanHours(-0.25); });
     elements.livePlanPlus.addEventListener("click", function () { changePlanHours(0.25); });
@@ -1702,6 +1966,7 @@
 
     document.addEventListener("visibilitychange", function () {
       if (document.hidden || !data) return;
+      applyTheme();
       if (currentView === "today") renderToday(false);
       updateTodayDateLabels();
     });

@@ -14,10 +14,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Radni sati">
 
-  <link rel="manifest" href="./manifest.webmanifest?v=0.4.1">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.4.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.4.1">
-  <link rel="stylesheet" href="./css/styles.css?v=0.4.1">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.5.0">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.5.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.5.0">
+  <link rel="stylesheet" href="./css/styles.css?v=0.5.0">
 
   <script>
     (function () {
@@ -28,6 +28,13 @@
         var theme = saved && saved.settings && saved.settings.theme;
         if (theme === "light" || theme === "dark") {
           document.documentElement.setAttribute("data-theme", theme);
+        } else if (theme === "auto") {
+          var darkHint = localStorage.getItem("radni-sati:theme-dark");
+          if (darkHint === "1") {
+            document.documentElement.setAttribute("data-theme", "dark");
+          } else if (darkHint === "0") {
+            document.documentElement.setAttribute("data-theme", "light");
+          }
         }
       } catch (error) {
         /* A corrupt store is handled by the app after load. */
@@ -396,6 +403,12 @@
                 <span data-i18n="themeDark">Tamna</span>
               </label>
             </div>
+            <p class="section-hint theme-hint" data-i18n="themeAutoHint">Automatski: svijetla tema od izlaska do zalaska sunca.</p>
+            <div class="sun-panel" id="sunPanel" hidden>
+              <p class="section-hint sun-line" id="sunTimes"></p>
+              <p class="section-hint sun-line" id="sunPlace"></p>
+              <button class="btn btn-secondary btn-block" id="sunLocateBtn" type="button" data-i18n="sunUseLocation">Odredi moju lokaciju</button>
+            </div>
           </fieldset>
 
           <fieldset class="field">
@@ -432,7 +445,7 @@
           </div>
           <div class="update-version-row">
             <span class="update-version-label" data-i18n="currentVersion">Trenutna verzija</span>
-            <strong class="update-version-value" id="updateCurrentVersion">v0.4.1</strong>
+            <strong class="update-version-value" id="updateCurrentVersion">v0.5.0</strong>
           </div>
           <p class="section-hint" data-i18n="updateHint">Provjeri je li dostupna nova verzija aplikacije.</p>
           <button class="btn btn-secondary btn-block" id="checkUpdateBtn" type="button" data-i18n="checkUpdates">Provjeri ažuriranja</button>
@@ -443,7 +456,7 @@
           </div>
         </section>
 
-        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.4.1</span></p>
+        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.5.0</span></p>
       </div>
     </section>
   </main>
@@ -593,8 +606,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="./js/i18n.js?v=0.4.1"></script>
-  <script src="./js/store.js?v=0.4.1"></script>
-  <script src="./js/app.js?v=0.4.1"></script>
+  <script src="./js/i18n.js?v=0.5.0"></script>
+  <script src="./js/store.js?v=0.5.0"></script>
+  <script src="./js/app.js?v=0.5.0"></script>
 </body>
 </html>

@@ -1,5 +1,15 @@
 # Changes
 
+## v0.5.0 — 2026-10-20
+
+- Auto theme is now sun-based instead of following `prefers-color-scheme`: light from sunrise to sunset, dark otherwise.
+- Sunrise and sunset are computed locally with the NOAA/SunCalc solar algorithm, so the feature works offline and without any network call.
+- Location resolution: a timezone → city table (Croatian and neighbouring cities, 30 entries) provides a sensible default, and **Postavke → Izgled → Odredi moju lokaciju** stores exact GPS coordinates in `radni-sati:theme-location`.
+- Settings shows today's sunrise/sunset and the location in use for the auto theme.
+- The theme switches by itself at the sunrise/sunset boundary (a timer targets the next boundary, capped at 6 h) and re-applies on `visibilitychange` when returning to the app.
+- Early-paint inline script now also handles the auto theme through a `radni-sati:theme-dark` hint, so a dark night does not flash light on launch.
+- New strings in Croatian and English; version bump to 0.5.0 across manifest, asset queries and the service worker cache.
+
 ## v0.4.1 — 2026-10-20
 
 - New 512 px app icon supplied by the user (hard hat over a clock on a dark navy background).
