@@ -1,5 +1,15 @@
 # Changes
 
+## v0.8.0 — 2026-10-21
+
+- History gained an "Dodaj propušteni dan" card: date (max today) plus hours, nothing else required. The entry is stored like a normal day, so the rate valid on that date, the daily allowance and the month totals are calculated automatically.
+- Validation: required date, no future dates, hours required, numeric and a multiple of 0.25 (max 24). Errors are shown inline.
+- Adding a date that already exists does not overwrite it — it opens the existing entry in the editor dialog.
+- Every history row now has a trash button that deletes the day after a confirmation dialog; cancelling keeps the day.
+- Deleting today's entry from history also clears its closed flag and suppresses the automatic re-save, same as the other delete paths.
+- Shared `removeDayEntry` helper now backs the Today delete, the editor delete and the history delete.
+- New tests: 23 browser checks for the history flow; version bump to 0.8.0.
+
 ## v0.7.0 — 2026-10-21
 
 - Annual leave ranges: new `vacations` array of `{ id, from, to }` with a from/to date pair, an "Dodaj godišnji odmor" button and a removable list showing the range and its length.

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.7.0";
+  var APP_VERSION = "0.8.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -40,6 +40,7 @@
       "livePlanMinus", "livePlanPlus", "livePlanValue", "liveSaveDay",
       "updateBanner", "updateBannerText", "updateBannerApply", "updateBannerDismiss",
       "historyEmpty", "historyGroups",
+      "addDayDate", "addDayHours", "addDayDateError", "addDayHoursError", "addDayBtn",
       "monthPrev", "monthNext", "monthLabel", "monthTotal", "monthFormula", "monthDays",
       "monthHours", "monthBase", "monthAllowance", "monthTravel", "monthOther",
       "monthDayList", "monthEmpty",
@@ -1014,6 +1015,7 @@
   function renderHistory() {
     var dates = Object.keys(data.days).sort().reverse();
     elements.historyGroups.innerHTML = "";
+    elements.addDayDate.max = todayISO();
     elements.historyEmpty.hidden = dates.length > 0;
     if (!dates.length) return;
 
@@ -1044,6 +1046,10 @@
       groups[groupKey].forEach(function (dateISO) {
         var entry = data.days[dateISO];
         var breakdown = breakdownFor(dateISO, entry);
+
+        var item = document.createElement("div");
+        item.className = "history-item";
+
         var row = document.createElement("button");
         row.type = "button";
         row.className = "history-row";
@@ -1071,11 +1077,103 @@
         row.appendChild(hours);
         row.appendChild(total);
         row.appendChild(createHistoryChevron());
-        card.appendChild(row);
+
+        var remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "icon-btn history-remove";
+        remove.setAttribute("data-delete", dateISO);
+        remove.setAttribute("aria-label", i18n.t("deleteEntryAria", { date: formatLongDate(dateISO) }));
+        remove.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
+
+        item.appendChild(row);
+        item.appendChild(remove);
+        card.appendChild(item);
       });
 
       group.appendChild(card);
       elements.historyGroups.appendChild(group);
+    });
+  }
+
+  function removeDayEntry(dateISO) {
+    if (!getEntry(dateISO)) return false;
+    delete data.days[dateISO];
+    if (dateISO === todayISO()) {
+      clearDayClosed(dateISO);
+      autoSaveKey = dateISO + ":" + planFor(dateISO);
+    }
+    var saved = persist();
+    renderHistory();
+    renderMonth();
+    if (dateISO === todayISO()) {
+      fillTodayForm();
+      renderLiveCard(new Date());
+    }
+    return saved;
+  }
+
+  function addHistoryDay() {
+    var dateISO = elements.addDayDate.value;
+    if (!store.isValidDateKey(dateISO)) {
+      setFieldError(elements.addDayDate, elements.addDayDateError, "addDayDateInvalid");
+      return;
+    }
+    clearFieldError(elements.addDayDate, elements.addDayDateError);
+
+    if (dateISO > todayISO()) {
+      setFieldError(elements.addDayDate, elements.addDayDateError, "addDayFuture");
+      return;
+    }
+
+    var rawHours = elements.addDayHours.value.trim();
+    var hours = rawHours === "" ? null : parseLocaleNumber(rawHours);
+    if (hours === null || hours > 24) {
+      setFieldError(elements.addDayHours, elements.addDayHoursError, "addDayHoursInvalid");
+      return;
+    }
+    if (Math.abs(hours * 4 - Math.round(hours * 4)) > 0.000001) {
+      setFieldError(elements.addDayHours, elements.addDayHoursError, "hoursErrorStep");
+      return;
+    }
+    clearFieldError(elements.addDayHours, elements.addDayHoursError);
+
+    if (getEntry(dateISO)) {
+      toast(i18n.t("addDayExists"));
+      openEditor(dateISO);
+      return;
+    }
+
+    data.days[dateISO] = {
+      hours: round4(hours),
+      travel: 0,
+      other: 0,
+      note: ""
+    };
+    if (dateISO === todayISO()) {
+      clearDayClosed(dateISO);
+      autoSaveKey = dateISO + ":" + planFor(dateISO);
+    }
+    var saved = persist();
+    elements.addDayDate.value = "";
+    elements.addDayHours.value = "";
+    renderHistory();
+    renderMonth();
+    if (dateISO === todayISO()) {
+      fillTodayForm();
+      renderLiveCard(new Date());
+    }
+    if (saved) toast(i18n.t("addDayDone"));
+  }
+
+  function confirmDeleteHistoryEntry(dateISO) {
+    if (!getEntry(dateISO)) return;
+    askConfirm(
+      i18n.t("deleteDayTitle"),
+      i18n.t("deleteDayMessage", { date: formatLongDate(dateISO) }),
+      i18n.t("delete")
+    ).then(function (confirmed) {
+      if (!confirmed) return;
+      if (removeDayEntry(dateISO)) toast(i18n.t("toastDeleted"));
     });
   }
 
@@ -1483,15 +1581,7 @@
       i18n.t("delete")
     ).then(function (confirmed) {
       if (!confirmed) return;
-      delete data.days[iso];
-      clearDayClosed(iso);
-      autoSaveKey = iso + ":" + planFor(iso);
-      var saved = persist();
-      fillTodayForm();
-      renderLiveCard(new Date());
-      renderHistory();
-      renderMonth();
-      if (saved) toast(i18n.t("toastDeleted"));
+      if (removeDayEntry(iso)) toast(i18n.t("toastDeleted"));
     });
   }
 
@@ -1524,19 +1614,10 @@
       i18n.t("delete")
     ).then(function (confirmed) {
       if (!confirmed) return;
-      delete data.days[dateISO];
-      clearDayClosed(dateISO);
-      if (dateISO === todayISO()) autoSaveKey = dateISO + ":" + planFor(dateISO);
-      var saved = persist();
+      var saved = removeDayEntry(dateISO);
       closeEditor();
       editingDate = null;
-      if (dateISO === todayISO()) {
-        renderToday(true);
-      } else {
-        renderToday(false);
-      }
-      renderHistory();
-      renderMonth();
+      renderToday(dateISO === todayISO());
       if (saved) toast(i18n.t("toastDeleted"));
     });
   }
@@ -2026,9 +2107,22 @@
     wirePreviewInputs("today");
 
     elements.historyGroups.addEventListener("click", function (event) {
+      var remove = event.target.closest("[data-delete]");
+      if (remove) {
+        confirmDeleteHistoryEntry(remove.getAttribute("data-delete"));
+        return;
+      }
       var row = event.target.closest("[data-date]");
       if (!row) return;
       openEditor(row.getAttribute("data-date"));
+    });
+
+    elements.addDayBtn.addEventListener("click", addHistoryDay);
+    elements.addDayDate.addEventListener("input", function () {
+      clearFieldError(elements.addDayDate, elements.addDayDateError);
+    });
+    elements.addDayHours.addEventListener("input", function () {
+      clearFieldError(elements.addDayHours, elements.addDayHoursError);
     });
 
     elements.monthPrev.addEventListener("click", function () { goToMonth(-1); });

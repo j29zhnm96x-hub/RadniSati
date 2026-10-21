@@ -13,6 +13,13 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.8.0
+
+- **Povijest → Dodaj propušteni dan**: upišeš samo datum i koliko si sati radio; satnica za taj datum, dnevna naknada i ukupni iznos izračunaju se kao za svaki drugi dan, a dan ulazi u Povijest i Mjesec.
+- Svaki red u Povijesti sada ima **ikonu kante** za brisanje — briše se uz potvrdu, a "Odustani" zadrži dan.
+- Datum u budućnosti, prazna ili neispravna količina sati se odbijaju uz poruku ispod polja.
+- Ako dan već postoji, app ga ne prepiše nego otvori postojeći unos za uređivanje.
+
 ## What's new in 0.7.0
 
 - **Godišnji odmor** u Postavkama → Radni dani: upišeš datum **od** i **do** i cijeli raspon se preskače — pet dana, dva tjedna, kako god.
