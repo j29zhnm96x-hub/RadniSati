@@ -1,5 +1,16 @@
 # Changes
 
+## v0.10.0 — 2026-10-21
+
+- History: the inline "add a missed day" card is gone; a "+" button in the History header opens the existing day modal in add mode, with a date field (max today), hours, kilometres, other and note.
+- Travel costs are kilometre-based: new settings `travelKm` (default daily distance) and `travelRate` (price per km). Each day stores `km` and the computed `travel` in euros (`km × rate`).
+- The Today form and the day modal now ask for kilometres instead of a euro amount, and the calculation box shows `18 km × 0,50 €` next to the travel value.
+- Kilometres are editable per day (e.g. 76 km for a site visit) and the travel cost recalculates instantly; the default stays untouched.
+- Days created by the shift auto-save or the "Spremi dan" button receive the default kilometres and travel cost automatically.
+- Legacy entries without `km` derive it from `travel ÷ rate` so their euro amount is preserved; entries keep their stored euro travel when the rate later changes.
+- Validation for both fields, live daily total in Settings, and 40 new browser checks covering the + modal, travel maths per day, month totals, legacy data and 320px.
+- Version bump to 0.10.0.
+
 ## v0.9.0 — 2026-10-21
 
 - Per-day start time: new `starts` date→"HH:MM" map, edited directly on the Today card with a native time field; a reset button appears only when the day is overridden. The countdown, earnings and the save action all follow the override; the global start in Settings stays untouched.

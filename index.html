@@ -14,10 +14,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Radni sati">
 
-  <link rel="manifest" href="./manifest.webmanifest?v=0.9.0">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.9.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.9.0">
-  <link rel="stylesheet" href="./css/styles.css?v=0.9.0">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.10.0">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.10.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.10.0">
+  <link rel="stylesheet" href="./css/styles.css?v=0.10.0">
 
   <script>
     (function () {
@@ -142,12 +142,12 @@
 
           <div class="field-grid">
             <div class="field">
-              <label for="todayTravel" data-i18n="travelLabel">Putni trošak</label>
+              <label for="todayKm" data-i18n="kmLabel">Kilometri</label>
               <div class="input-shell">
-                <input class="field-input" id="todayTravel" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" aria-describedby="todayTravelError">
-                <span class="input-suffix" aria-hidden="true">€</span>
+                <input class="field-input" id="todayKm" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" aria-describedby="todayKmError">
+                <span class="input-suffix" aria-hidden="true">km</span>
               </div>
-              <p class="field-error" id="todayTravelError" hidden></p>
+              <p class="field-error" id="todayKmError" hidden></p>
             </div>
             <div class="field">
               <label for="todayOther" data-i18n="otherLabel">Ostalo</label>
@@ -179,7 +179,10 @@
                 <dd class="money" id="todayAllowance">0,00 €</dd>
               </div>
               <div class="calc-row">
-                <dt data-i18n="travelLabel">Putni trošak</dt>
+                <dt>
+                  <span data-i18n="travelLabel">Putni trošak</span>
+                  <span class="calc-detail" id="todayTravelDetail"></span>
+                </dt>
                 <dd class="money" id="todayTravelValue">0,00 €</dd>
               </div>
               <div class="calc-row">
@@ -208,32 +211,14 @@
           <h1 id="historyHeading" data-i18n="navHistory">Povijest</h1>
           <p class="page-subtitle" data-i18n="historySubtitle">Svi zabilježeni dani, najnoviji prvi.</p>
         </div>
+        <button class="icon-btn header-action" id="addDayBtn" type="button" data-i18n-aria-label="addDayAction" aria-label="Dodaj dan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </button>
       </header>
 
       <div class="view-stack">
-        <section class="card add-day-card" aria-labelledby="addDayHeading">
-          <div class="card-heading">
-            <h2 id="addDayHeading" data-i18n="addDayTitle">Dodaj propušteni dan</h2>
-          </div>
-          <p class="section-hint" data-i18n="addDayHint">Upiši datum i koliko si sati radio — ostalo se izračuna kao za svaki drugi dan.</p>
-          <div class="field-grid add-day-grid">
-            <div class="field">
-              <label for="addDayDate" data-i18n="addDayDate">Datum</label>
-              <input class="field-input" id="addDayDate" type="date" autocomplete="off" aria-describedby="addDayDateError">
-              <p class="field-error" id="addDayDateError" hidden></p>
-            </div>
-            <div class="field">
-              <label for="addDayHours" data-i18n="hoursLabel">Radni sati</label>
-              <div class="input-shell">
-                <input class="field-input" id="addDayHours" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="addDayHoursError">
-                <span class="input-suffix" aria-hidden="true" data-i18n="hourUnit">h</span>
-              </div>
-              <p class="field-error" id="addDayHoursError" hidden></p>
-            </div>
-          </div>
-          <button class="btn btn-primary btn-block" id="addDayBtn" type="button" data-i18n="addDayAction">Dodaj dan</button>
-        </section>
-
         <div class="card empty-state" id="historyEmpty">
           <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M5 4h14a1 1 0 0 1 1 1v15H4V5a1 1 0 0 1 1-1Z"/>
@@ -397,6 +382,31 @@
           </div>
         </section>
 
+        <section class="card" aria-labelledby="travelHeading">
+          <div class="card-heading">
+            <h2 id="travelHeading" data-i18n="travelSection">Putni trošak</h2>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="travelKmInput" data-i18n="travelKmLabel">Kilometri dnevno</label>
+              <div class="input-shell">
+                <input class="field-input" id="travelKmInput" type="text" inputmode="decimal" autocomplete="off" aria-describedby="travelKmError">
+                <span class="input-suffix" aria-hidden="true">km</span>
+              </div>
+              <p class="field-error" id="travelKmError" hidden></p>
+            </div>
+            <div class="field">
+              <label for="travelRateInput" data-i18n="travelRateLabel">Cijena po kilometru</label>
+              <div class="input-shell">
+                <input class="field-input" id="travelRateInput" type="text" inputmode="decimal" autocomplete="off" aria-describedby="travelRateError">
+                <span class="input-suffix" aria-hidden="true">€</span>
+              </div>
+              <p class="field-error" id="travelRateError" hidden></p>
+            </div>
+          </div>
+          <p class="section-hint" id="travelHint"></p>
+        </section>
+
         <section class="card" aria-labelledby="workTimeHeading">
           <div class="card-heading">
             <h2 id="workTimeHeading" data-i18n="workTimeSection">Radno vrijeme</h2>
@@ -513,7 +523,7 @@
           </div>
           <div class="update-version-row">
             <span class="update-version-label" data-i18n="currentVersion">Trenutna verzija</span>
-            <strong class="update-version-value" id="updateCurrentVersion">v0.9.0</strong>
+            <strong class="update-version-value" id="updateCurrentVersion">v0.10.0</strong>
           </div>
           <p class="section-hint" data-i18n="updateHint">Provjeri je li dostupna nova verzija aplikacije.</p>
           <button class="btn btn-secondary btn-block" id="checkUpdateBtn" type="button" data-i18n="checkUpdates">Provjeri ažuriranja</button>
@@ -524,7 +534,7 @@
           </div>
         </section>
 
-        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.9.0</span></p>
+        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.10.0</span></p>
       </div>
     </section>
   </main>
@@ -581,6 +591,12 @@
       </header>
 
       <div class="sheet-body">
+        <div class="field" id="editorDateField" hidden>
+          <label for="editorDate" data-i18n="dateLabel">Datum</label>
+          <input class="field-input" id="editorDate" type="date" aria-describedby="editorDateError">
+          <p class="field-error" id="editorDateError" hidden></p>
+        </div>
+
         <div class="field">
           <div class="label-row">
             <label for="editorHours" data-i18n="hoursLabel">Radni sati</label>
@@ -602,12 +618,12 @@
 
         <div class="field-grid">
           <div class="field">
-            <label for="editorTravel" data-i18n="travelLabel">Putni trošak</label>
+            <label for="editorKm" data-i18n="kmLabel">Kilometri</label>
             <div class="input-shell">
-              <input class="field-input" id="editorTravel" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="editorTravelError">
-              <span class="input-suffix" aria-hidden="true">€</span>
+              <input class="field-input" id="editorKm" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="editorKmError">
+              <span class="input-suffix" aria-hidden="true">km</span>
             </div>
-            <p class="field-error" id="editorTravelError" hidden></p>
+            <p class="field-error" id="editorKmError" hidden></p>
           </div>
           <div class="field">
             <label for="editorOther" data-i18n="otherLabel">Ostalo</label>
@@ -639,7 +655,10 @@
               <dd class="money" id="editorAllowance">0,00 €</dd>
             </div>
             <div class="calc-row">
-              <dt data-i18n="travelLabel">Putni trošak</dt>
+              <dt>
+                <span data-i18n="travelLabel">Putni trošak</span>
+                <span class="calc-detail" id="editorTravelDetail"></span>
+              </dt>
               <dd class="money" id="editorTravelValue">0,00 €</dd>
             </div>
             <div class="calc-row">
@@ -674,8 +693,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="./js/i18n.js?v=0.9.0"></script>
-  <script src="./js/store.js?v=0.9.0"></script>
-  <script src="./js/app.js?v=0.9.0"></script>
+  <script src="./js/i18n.js?v=0.10.0"></script>
+  <script src="./js/store.js?v=0.10.0"></script>
+  <script src="./js/app.js?v=0.10.0"></script>
 </body>
 </html>

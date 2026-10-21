@@ -54,6 +54,8 @@
         workStart: "08:00",
         plannedHours: 8,
         workDays: [1, 2, 3, 4, 5],
+        travelKm: 0,
+        travelRate: 0,
         rates: []
       },
       plans: {},
@@ -109,6 +111,14 @@
       }
       if (typeof rawSettings.plannedHours === "number" && isFinite(rawSettings.plannedHours) && rawSettings.plannedHours >= 0 && rawSettings.plannedHours <= 24) {
         out.settings.plannedHours = snapQuarter(rawSettings.plannedHours);
+      }
+
+      if (typeof rawSettings.travelKm === "number" && isFinite(rawSettings.travelKm) && rawSettings.travelKm >= 0 && rawSettings.travelKm <= 5000) {
+        out.settings.travelKm = round2(rawSettings.travelKm);
+      }
+
+      if (typeof rawSettings.travelRate === "number" && isFinite(rawSettings.travelRate) && rawSettings.travelRate >= 0 && rawSettings.travelRate <= 100) {
+        out.settings.travelRate = round2(rawSettings.travelRate);
       }
 
       if (Array.isArray(rawSettings.workDays)) {
@@ -216,15 +226,17 @@
         var dateKey = keys[k];
         var rawDay = rawDays[dateKey];
         if (!isValidDateKey(dateKey) || !isPlainObject(rawDay)) continue;
-        if (!("hours" in rawDay) && !("travel" in rawDay) && !("other" in rawDay) && !("note" in rawDay)) continue;
+        if (!("hours" in rawDay) && !("travel" in rawDay) && !("other" in rawDay) && !("note" in rawDay) && !("km" in rawDay)) continue;
 
         if ("hours" in rawDay && (typeof rawDay.hours !== "number" || !isFinite(rawDay.hours) || rawDay.hours < 0)) continue;
         if ("travel" in rawDay && (typeof rawDay.travel !== "number" || !isFinite(rawDay.travel) || rawDay.travel < 0)) continue;
         if ("other" in rawDay && (typeof rawDay.other !== "number" || !isFinite(rawDay.other) || rawDay.other < 0)) continue;
+        if ("km" in rawDay && (typeof rawDay.km !== "number" || !isFinite(rawDay.km) || rawDay.km < 0)) continue;
 
         var note = typeof rawDay.note === "string" ? rawDay.note.trim().slice(0, 500) : "";
         out.days[dateKey] = {
           hours: round4(typeof rawDay.hours === "number" ? rawDay.hours : 0),
+          km: typeof rawDay.km === "number" ? round2(rawDay.km) : null,
           travel: round2(typeof rawDay.travel === "number" ? rawDay.travel : 0),
           other: round2(typeof rawDay.other === "number" ? rawDay.other : 0),
           note: note,

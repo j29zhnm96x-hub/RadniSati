@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.9.0";
+  var APP_VERSION = "0.10.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -9,6 +9,7 @@
   var currentView = "today";
   var selectedMonth = { year: new Date().getFullYear(), month: new Date().getMonth() };
   var editingDate = null;
+  var addingDay = false;
   var toastTimer = null;
   var confirmResolver = null;
   var formatters = {};
@@ -32,7 +33,8 @@
   function cacheElements() {
     [
       "todayWeekday", "todayDate", "todayForm", "todayHours", "todayHoursError",
-      "todayTravel", "todayTravelError", "todayOther", "todayOtherError", "todayNote",
+      "todayKm", "todayKmError", "todayTravelDetail",
+      "todayOther", "todayOtherError", "todayNote",
       "todayBaseDetail", "todayBase", "todayAllowanceRow", "todayAllowance",
       "todayTravelValue", "todayOtherValue", "todayPreviewTotal", "todayTotal",
       "todayHeroFormula", "todayDelete", "todaySave",
@@ -40,14 +42,14 @@
       "livePlanMinus", "livePlanPlus", "livePlanValue", "liveSaveDay", "livePlanRow",
       "liveStartInput", "liveStartReset", "liveOpenToggle",
       "updateBanner", "updateBannerText", "updateBannerApply", "updateBannerDismiss",
-      "historyEmpty", "historyGroups",
-      "addDayDate", "addDayHours", "addDayDateError", "addDayHoursError", "addDayBtn",
+      "historyEmpty", "historyGroups", "addDayBtn",
       "monthPrev", "monthNext", "monthLabel", "monthTotal", "monthFormula", "monthDays",
       "monthHours", "monthBase", "monthAllowance", "monthTravel", "monthOther",
       "monthDayList", "monthEmpty",
       "firstRunHint", "currentRateValue", "currentRateUnit", "rateForm", "rateAmount",
       "rateAmountError", "rateDate", "rateDateError", "rateHistoryList", "rateHistoryEmpty",
       "allowanceToggle", "allowanceAmount", "allowanceError", "themeControl",
+      "travelKmInput", "travelRateInput", "travelKmError", "travelRateError", "travelHint",
       "languageControl", "exportBtn", "importBtn", "importFile", "clearBtn", "appVersion",
       "workStartInput", "plannedHoursInput", "workDaysControl",
       "holidayDate", "holidayAdd", "holidayError", "holidayList", "holidayEmpty",
@@ -55,7 +57,9 @@
       "updateCurrentVersion", "checkUpdateBtn", "updateStatus", "updateAvailable",
       "updateAvailableText", "updateNowBtn",
       "dayDialog", "editorForm", "editorTitle", "editorRate", "editorClose", "editorHours",
-      "editorHoursError", "editorTravel", "editorTravelError", "editorOther",
+      "editorDate", "editorDateField", "editorDateError",
+      "editorKm", "editorKmError", "editorTravelDetail",
+      "editorHoursError", "editorOther",
       "editorOtherError", "editorNote", "editorBaseDetail", "editorBase",
       "editorAllowanceRow", "editorAllowance", "editorTravelValue", "editorOtherValue",
       "editorTotal", "editorDelete", "editorSave",
@@ -252,6 +256,26 @@
       other: other,
       total: total
     };
+  }
+
+  function defaultKm() {
+    var km = Number(data.settings.travelKm);
+    return isFinite(km) && km > 0 ? km : 0;
+  }
+
+  function travelForKm(km) {
+    var rate = Number(data.settings.travelRate);
+    if (!isFinite(rate) || rate <= 0) return 0;
+    var value = isFinite(km) ? km : 0;
+    return round2(Math.max(0, value) * rate);
+  }
+
+  function kmForEntry(entry) {
+    if (!entry) return defaultKm();
+    if (typeof entry.km === "number" && isFinite(entry.km)) return entry.km;
+    var rate = Number(data.settings.travelRate);
+    if (rate > 0 && entry.travel > 0) return round2(entry.travel / rate);
+    return 0;
   }
 
   function persist() {
@@ -461,20 +485,30 @@
     var entry = getEntry(iso);
     if (entry && entry.auto !== true && !(options && options.force)) return false;
 
-    var travel = entry ? entry.travel : 0;
+    var km;
+    var travel;
+    if (entry) {
+      km = entry.km === null || entry.km === undefined ? kmForEntry(entry) : entry.km;
+      travel = entry.km === null || entry.km === undefined ? travelForKm(km) : entry.travel;
+    } else {
+      km = defaultKm();
+      travel = travelForKm(km);
+    }
     var other = entry ? entry.other : 0;
     var note = entry ? entry.note : "";
     if (options && options.fromForm) {
       var raw = readRawEntry("today");
-      travel = round2(raw.travel);
-      other = round2(raw.other);
-      note = raw.note.slice(0, 500);
+      km = raw.km;
+      travel = raw.travel;
+      other = raw.other;
+      note = raw.note;
     }
 
     data.days[iso] = {
       hours: round4(plan),
-      travel: travel,
-      other: other,
+      km: round2(km),
+      travel: round2(travel),
+      other: round2(other),
       note: note,
       auto: true
     };
@@ -933,12 +967,12 @@
     var iso = todayISO();
     var entry = getEntry(iso);
     elements.todayHours.value = entry ? formatInputHours(entry.hours) : "";
-    elements.todayTravel.value = entry ? formatInputNumber(entry.travel) : formatInputNumber(0);
+    elements.todayKm.value = formatInputNumber(kmForEntry(entry));
     elements.todayOther.value = entry ? formatInputNumber(entry.other) : formatInputNumber(0);
     elements.todayNote.value = entry ? entry.note : "";
     elements.todayForm.dataset.entryDate = iso;
     clearFieldError(elements.todayHours, elements.todayHoursError);
-    clearFieldError(elements.todayTravel, elements.todayTravelError);
+    clearFieldError(elements.todayKm, elements.todayKmError);
     clearFieldError(elements.todayOther, elements.todayOtherError);
     updateTodayEntryControls();
     updateTodayPreview();
@@ -946,22 +980,26 @@
 
   function readRawEntry(prefix) {
     var hoursInput = byId(prefix + "Hours");
-    var travelInput = byId(prefix + "Travel");
+    var kmInput = byId(prefix + "Km");
     var otherInput = byId(prefix + "Other");
     var noteInput = byId(prefix + "Note");
     var hours = hoursInput.value.trim() === "" ? 0 : parseLocaleNumber(hoursInput.value);
-    var travel = travelInput.value.trim() === "" ? 0 : parseLocaleNumber(travelInput.value);
+    var km = kmInput.value.trim() === "" ? 0 : parseLocaleNumber(kmInput.value);
     var other = otherInput.value.trim() === "" ? 0 : parseLocaleNumber(otherInput.value);
     return {
       hours: hours === null ? 0 : hours,
-      travel: travel === null ? 0 : travel,
+      km: km === null ? 0 : km,
+      travel: travelForKm(km === null ? 0 : km),
       other: other === null ? 0 : other,
       note: noteInput ? noteInput.value.trim() : ""
     };
   }
 
   function updatePreviewNumbers(prefix, values) {
-    var iso = prefix === "editor" ? editingDate : todayISO();
+    var iso = prefix === "editor"
+      ? (addingDay ? elements.editorDate.value : editingDate)
+      : todayISO();
+    if (!store.isValidDateKey(iso)) iso = todayISO();
     var breakdown = breakdownFor(iso, values);
     var hoursFormatted = formatNumber(values.hours);
     var detail = i18n.t("baseDetail", {
@@ -974,6 +1012,14 @@
     byId(prefix + "Allowance").textContent = formatCurrency(breakdown.allowance);
     byId(prefix + "TravelValue").textContent = formatCurrency(breakdown.travel);
     byId(prefix + "OtherValue").textContent = formatCurrency(breakdown.other);
+    var travelDetail = byId(prefix + "TravelDetail");
+    if (travelDetail) {
+      var km = values.km || 0;
+      var travelRate = Number(data.settings.travelRate) || 0;
+      travelDetail.textContent = km > 0 && travelRate > 0
+        ? i18n.t("travelDetail", { km: formatNumber(km), rate: formatCurrency(travelRate) })
+        : "";
+    }
     var totalText = formatCurrency(breakdown.total);
     if (prefix === "today") {
       elements.todayPreviewTotal.textContent = totalText;
@@ -1002,7 +1048,7 @@
   }
 
   function updateEditorPreview() {
-    if (!editingDate) return;
+    if (!editingDate && !addingDay) return;
     updatePreviewNumbers("editor", readRawEntry("editor"));
   }
 
@@ -1032,18 +1078,18 @@
 
   function validateEntry(prefix) {
     var hoursInput = byId(prefix + "Hours");
-    var travelInput = byId(prefix + "Travel");
+    var kmInput = byId(prefix + "Km");
     var otherInput = byId(prefix + "Other");
     var noteInput = byId(prefix + "Note");
     var hoursError = byId(prefix + "HoursError");
-    var travelError = byId(prefix + "TravelError");
+    var kmError = byId(prefix + "KmError");
     var otherError = byId(prefix + "OtherError");
     var firstInvalid = null;
     var hoursRaw = hoursInput.value.trim();
-    var travelRaw = travelInput.value.trim();
+    var kmRaw = kmInput.value.trim();
     var otherRaw = otherInput.value.trim();
     var hours = hoursRaw === "" ? 0 : parseLocaleNumber(hoursRaw);
-    var travel = travelRaw === "" ? 0 : parseLocaleNumber(travelRaw);
+    var km = kmRaw === "" ? 0 : parseLocaleNumber(kmRaw);
     var other = otherRaw === "" ? 0 : parseLocaleNumber(otherRaw);
 
     if (hours === null) {
@@ -1056,11 +1102,11 @@
       clearFieldError(hoursInput, hoursError);
     }
 
-    if (travel === null) {
-      setFieldError(travelInput, travelError, "travelError");
-      firstInvalid = firstInvalid || travelInput;
+    if (km === null || km > 5000) {
+      setFieldError(kmInput, kmError, "kmError");
+      firstInvalid = firstInvalid || kmInput;
     } else {
-      clearFieldError(travelInput, travelError);
+      clearFieldError(kmInput, kmError);
     }
 
     if (other === null) {
@@ -1077,7 +1123,8 @@
 
     return {
       hours: round4(hours),
-      travel: round2(travel),
+      km: round2(km),
+      travel: travelForKm(km),
       other: round2(other),
       note: noteInput.value.trim().slice(0, 500)
     };
@@ -1113,7 +1160,6 @@
   function renderHistory() {
     var dates = Object.keys(data.days).sort().reverse();
     elements.historyGroups.innerHTML = "";
-    elements.addDayDate.max = todayISO();
     elements.historyEmpty.hidden = dates.length > 0;
     if (!dates.length) return;
 
@@ -1208,59 +1254,6 @@
       renderLiveCard(new Date());
     }
     return saved;
-  }
-
-  function addHistoryDay() {
-    var dateISO = elements.addDayDate.value;
-    if (!store.isValidDateKey(dateISO)) {
-      setFieldError(elements.addDayDate, elements.addDayDateError, "addDayDateInvalid");
-      return;
-    }
-    clearFieldError(elements.addDayDate, elements.addDayDateError);
-
-    if (dateISO > todayISO()) {
-      setFieldError(elements.addDayDate, elements.addDayDateError, "addDayFuture");
-      return;
-    }
-
-    var rawHours = elements.addDayHours.value.trim();
-    var hours = rawHours === "" ? null : parseLocaleNumber(rawHours);
-    if (hours === null || hours > 24) {
-      setFieldError(elements.addDayHours, elements.addDayHoursError, "addDayHoursInvalid");
-      return;
-    }
-    if (Math.abs(hours * 4 - Math.round(hours * 4)) > 0.000001) {
-      setFieldError(elements.addDayHours, elements.addDayHoursError, "hoursErrorStep");
-      return;
-    }
-    clearFieldError(elements.addDayHours, elements.addDayHoursError);
-
-    if (getEntry(dateISO)) {
-      toast(i18n.t("addDayExists"));
-      openEditor(dateISO);
-      return;
-    }
-
-    data.days[dateISO] = {
-      hours: round4(hours),
-      travel: 0,
-      other: 0,
-      note: ""
-    };
-    if (dateISO === todayISO()) {
-      clearDayClosed(dateISO);
-      autoSaveKey = dateISO + ":" + planFor(dateISO);
-    }
-    var saved = persist();
-    elements.addDayDate.value = "";
-    elements.addDayHours.value = "";
-    renderHistory();
-    renderMonth();
-    if (dateISO === todayISO()) {
-      fillTodayForm();
-      renderLiveCard(new Date());
-    }
-    if (saved) toast(i18n.t("addDayDone"));
   }
 
   function confirmDeleteHistoryEntry(dateISO) {
@@ -1582,6 +1575,11 @@
 
     elements.workStartInput.value = data.settings.workStart;
     elements.plannedHoursInput.value = String(data.settings.plannedHours);
+    elements.travelKmInput.value = formatInputNumber(data.settings.travelKm);
+    elements.travelRateInput.value = formatInputNumber(data.settings.travelRate);
+    clearFieldError(elements.travelKmInput, elements.travelKmError);
+    clearFieldError(elements.travelRateInput, elements.travelRateError);
+    renderTravelHint();
     renderWorkDays();
     renderHolidays();
     renderVacations();
@@ -1628,30 +1626,67 @@
     if (!editingDate) return;
     var entry = getEntry(editingDate);
     elements.editorTitle.textContent = formatLongDate(editingDate);
-    elements.editorRate.textContent = i18n.t("rateForDate", {
-      rate: formatCurrency(effectiveRate(editingDate))
-    });
+    updateEditorDateMeta();
     elements.editorHours.value = entry ? formatInputHours(entry.hours) : "";
-    elements.editorTravel.value = entry ? formatInputNumber(entry.travel) : formatInputNumber(0);
+    elements.editorKm.value = formatInputNumber(kmForEntry(entry));
     elements.editorOther.value = entry ? formatInputNumber(entry.other) : formatInputNumber(0);
     elements.editorNote.value = entry ? entry.note : "";
     elements.editorDelete.hidden = !entry;
     elements.editorSave.textContent = i18n.t(entry ? "update" : "save");
     clearFieldError(elements.editorHours, elements.editorHoursError);
-    clearFieldError(elements.editorTravel, elements.editorTravelError);
+    clearFieldError(elements.editorKm, elements.editorKmError);
     clearFieldError(elements.editorOther, elements.editorOtherError);
     updateEditorPreview();
   }
 
+  function updateEditorDateMeta() {
+    var dateISO = addingDay ? elements.editorDate.value : editingDate;
+    elements.editorRate.textContent = store.isValidDateKey(dateISO)
+      ? i18n.t("rateForDate", { rate: formatCurrency(effectiveRate(dateISO)) })
+      : "";
+  }
+
   function openEditor(dateISO) {
     if (!store.isValidDateKey(dateISO)) return;
+    addingDay = false;
     editingDate = dateISO;
+    elements.editorDateField.hidden = true;
     fillEditorForm();
     elements.dayDialog.showModal();
     syncModalState();
   }
 
+  function openNewDay() {
+    addingDay = true;
+    editingDate = null;
+    elements.editorDateField.hidden = false;
+    elements.editorDate.max = todayISO();
+    elements.editorDate.value = todayISO();
+    elements.editorTitle.textContent = i18n.t("addDayTitle");
+    elements.editorHours.value = "";
+    elements.editorKm.value = formatInputNumber(defaultKm());
+    elements.editorOther.value = formatInputNumber(0);
+    elements.editorNote.value = "";
+    elements.editorDelete.hidden = true;
+    elements.editorSave.textContent = i18n.t("addDayAction");
+    clearFieldError(elements.editorDate, elements.editorDateError);
+    clearFieldError(elements.editorHours, elements.editorHoursError);
+    clearFieldError(elements.editorKm, elements.editorKmError);
+    clearFieldError(elements.editorOther, elements.editorOtherError);
+    updateEditorDateMeta();
+    updateEditorPreview();
+    elements.dayDialog.showModal();
+    syncModalState();
+  }
+
+  function onEditorDateChange() {
+    clearFieldError(elements.editorDate, elements.editorDateError);
+    updateEditorDateMeta();
+    updateEditorPreview();
+  }
+
   function closeEditor() {
+    addingDay = false;
     if (elements.dayDialog.open) elements.dayDialog.close();
     syncModalState();
   }
@@ -1685,22 +1720,43 @@
 
   function saveEditor(event) {
     event.preventDefault();
-    if (!editingDate) return;
-    var dateISO = editingDate;
+    var dateISO = addingDay ? elements.editorDate.value : editingDate;
+
+    if (addingDay) {
+      if (!store.isValidDateKey(dateISO)) {
+        setFieldError(elements.editorDate, elements.editorDateError, "addDayDateInvalid");
+        return;
+      }
+      if (dateISO > todayISO()) {
+        setFieldError(elements.editorDate, elements.editorDateError, "addDayFuture");
+        return;
+      }
+      if (getEntry(dateISO)) {
+        setFieldError(elements.editorDate, elements.editorDateError, "addDayExists");
+        return;
+      }
+    }
+
+    if (!dateISO) return;
     var entry = validateEntry("editor");
     if (!entry) return;
+    var wasAdding = addingDay;
     data.days[dateISO] = entry;
+    if (dateISO === todayISO()) {
+      clearDayClosed(dateISO);
+      autoSaveKey = dateISO + ":" + planFor(dateISO);
+    }
     var saved = persist();
     closeEditor();
     editingDate = null;
     if (dateISO === todayISO()) {
       renderToday(true);
     } else {
+      renderHistory();
+      renderMonth();
       renderToday(false);
     }
-    renderHistory();
-    renderMonth();
-    if (saved) toast(i18n.t("toastUpdated"));
+    if (saved) toast(i18n.t(wasAdding ? "addDayDone" : "toastUpdated"));
   }
 
   function deleteEditorEntry() {
@@ -1847,6 +1903,48 @@
     data.settings.workStart = value;
     persist();
     renderLiveCard(new Date());
+  }
+
+  function renderTravelHint() {
+    var km = Number(data.settings.travelKm) || 0;
+    var rate = Number(data.settings.travelRate) || 0;
+    elements.travelHint.textContent = km > 0 && rate > 0
+      ? i18n.t("travelHint", {
+          km: formatNumber(km),
+          rate: formatCurrency(rate),
+          total: formatCurrency(travelForKm(km))
+        })
+      : i18n.t("travelHintEmpty");
+  }
+
+  function saveTravelKm() {
+    var raw = elements.travelKmInput.value.trim();
+    var km = raw === "" ? 0 : parseLocaleNumber(raw);
+    if (km === null || km > 5000) {
+      setFieldError(elements.travelKmInput, elements.travelKmError, "travelKmInvalid");
+      return;
+    }
+    clearFieldError(elements.travelKmInput, elements.travelKmError);
+    data.settings.travelKm = round2(km);
+    elements.travelKmInput.value = formatInputNumber(data.settings.travelKm);
+    persist();
+    renderTravelHint();
+    updateTodayPreview();
+  }
+
+  function saveTravelRate() {
+    var raw = elements.travelRateInput.value.trim();
+    var rate = raw === "" ? 0 : parseLocaleNumber(raw);
+    if (rate === null || rate > 100) {
+      setFieldError(elements.travelRateInput, elements.travelRateError, "travelRateInvalid");
+      return;
+    }
+    clearFieldError(elements.travelRateInput, elements.travelRateError);
+    data.settings.travelRate = round2(rate);
+    elements.travelRateInput.value = formatInputNumber(data.settings.travelRate);
+    persist();
+    renderTravelHint();
+    updateTodayPreview();
   }
 
   function savePlannedHours() {
@@ -2178,7 +2276,7 @@
   }
 
   function wirePreviewInputs(prefix) {
-    ["Hours", "Travel", "Other"].forEach(function (suffix) {
+    ["Hours", "Km", "Other"].forEach(function (suffix) {
       var input = byId(prefix + suffix);
       var error = byId(prefix + suffix + "Error");
       input.addEventListener("input", function () {
@@ -2215,12 +2313,10 @@
       openEditor(row.getAttribute("data-date"));
     });
 
-    elements.addDayBtn.addEventListener("click", addHistoryDay);
-    elements.addDayDate.addEventListener("input", function () {
-      clearFieldError(elements.addDayDate, elements.addDayDateError);
-    });
-    elements.addDayHours.addEventListener("input", function () {
-      clearFieldError(elements.addDayHours, elements.addDayHoursError);
+    elements.addDayBtn.addEventListener("click", openNewDay);
+    elements.editorDate.addEventListener("change", onEditorDateChange);
+    elements.editorDate.addEventListener("input", function () {
+      clearFieldError(elements.editorDate, elements.editorDateError);
     });
 
     elements.monthPrev.addEventListener("click", function () { goToMonth(-1); });
@@ -2244,6 +2340,15 @@
       clearFieldError(elements.allowanceAmount, elements.allowanceError);
     });
     elements.allowanceAmount.addEventListener("change", saveAllowanceAmount);
+
+    elements.travelKmInput.addEventListener("input", function () {
+      clearFieldError(elements.travelKmInput, elements.travelKmError);
+    });
+    elements.travelKmInput.addEventListener("change", saveTravelKm);
+    elements.travelRateInput.addEventListener("input", function () {
+      clearFieldError(elements.travelRateInput, elements.travelRateError);
+    });
+    elements.travelRateInput.addEventListener("change", saveTravelRate);
 
     elements.workStartInput.addEventListener("change", saveWorkStart);
     elements.plannedHoursInput.addEventListener("change", savePlannedHours);
@@ -2308,6 +2413,7 @@
 
     elements.dayDialog.addEventListener("close", function () {
       editingDate = null;
+      addingDay = false;
       syncModalState();
     });
     elements.dayDialog.addEventListener("click", function (event) {

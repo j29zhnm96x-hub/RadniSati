@@ -13,6 +13,14 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.10.0
+
+- **Povijest: "+" gumb** u zaglavlju otvara isti modal kao i uređivanje dana, samo prazan — datum (do danas), sati, kilometri, ostalo i napomena. Nema više stalne kartice za dodavanje.
+- **Putni trošak po kilometrima**: u Postavkama upišeš **kilometre dnevno** (npr. 18) i **cijenu po kilometru** (npr. 0,50 €). Aplikacija za svaki dan računa putni trošak kao `km × cijena` (18 × 0,50 = 9,00 €).
+- Kilometri su **po danu**: danas na gradilište 76 km — samo promijeniš broj u obrascu i trošak se odmah preračuna (76 × 0,50 = 38,00 €).
+- Postavke pokazuju koliko to iznosi dnevno, a novi dani automatski dobiju zadane kilometre (i kod automatskog spremanja smjene).
+- Stari unosi koji su imali samo iznos u € pretvaraju se u kilometre prema trenutnoj cijeni i zadržavaju isti iznos.
+
 ## What's new in 0.9.0
 
 - **Početak samo za danas**: na kartici Danas je polje **Početak** — postavi 09:00 i cijeli dan se računa od 09:00 (odbrojavanje, zarada, "Spremi dan"). Vrijedi samo za taj datum, a reset gumb vraća zadano vrijeme iz Postavki.

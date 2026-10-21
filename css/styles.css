@@ -770,16 +770,16 @@ input[type="time"] {
   flex: 0 0 auto;
 }
 
-.add-day-card {
-  margin-bottom: 18px;
+.header-action {
+  flex: 0 0 auto;
+  margin-top: -4px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
 }
 
-.add-day-grid {
-  margin-top: 14px;
-}
-
-.add-day-card .btn-block {
-  margin-top: 4px;
+.header-action svg {
+  width: 20px;
+  height: 20px;
 }
 
 .history-card {
