@@ -14,10 +14,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Radni sati">
 
-  <link rel="manifest" href="./manifest.webmanifest?v=0.8.0">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.8.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.8.0">
-  <link rel="stylesheet" href="./css/styles.css?v=0.8.0">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.9.0">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.9.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.9.0">
+  <link rel="stylesheet" href="./css/styles.css?v=0.9.0">
 
   <script>
     (function () {
@@ -83,11 +83,22 @@
             </div>
           </div>
 
-          <div class="live-progress" aria-hidden="true">
+          <div class="live-progress" id="liveProgress" aria-hidden="true">
             <span class="live-progress-bar" id="liveProgressBar"></span>
           </div>
 
-          <div class="live-plan-row">
+          <div class="live-shift-row">
+            <label class="live-shift-label" for="liveStartInput" data-i18n="liveStartLabel">Početak danas</label>
+            <div class="live-shift-controls">
+              <input class="live-time" id="liveStartInput" type="time" autocomplete="off" step="300">
+              <button class="icon-btn live-reset" id="liveStartReset" type="button" hidden data-i18n-aria-label="liveStartReset" aria-label="Vrati zadano vrijeme početka">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10a8 8 0 1 1 2.34 5.66"/><path d="M4 4v6h6"/></svg>
+              </button>
+            </div>
+            <button class="live-open-chip" id="liveOpenToggle" type="button" aria-pressed="false" data-i18n="liveOpenEnd">Kraj nije poznat</button>
+          </div>
+
+          <div class="live-plan-row" id="livePlanRow">
             <span class="live-plan-label" data-i18n="livePlanLabel">Danas radim</span>
             <div class="stepper">
               <button class="stepper-btn" id="livePlanMinus" type="button" data-i18n-aria-label="livePlanLess" aria-label="Smanji planirane sate">−</button>
@@ -502,7 +513,7 @@
           </div>
           <div class="update-version-row">
             <span class="update-version-label" data-i18n="currentVersion">Trenutna verzija</span>
-            <strong class="update-version-value" id="updateCurrentVersion">v0.8.0</strong>
+            <strong class="update-version-value" id="updateCurrentVersion">v0.9.0</strong>
           </div>
           <p class="section-hint" data-i18n="updateHint">Provjeri je li dostupna nova verzija aplikacije.</p>
           <button class="btn btn-secondary btn-block" id="checkUpdateBtn" type="button" data-i18n="checkUpdates">Provjeri ažuriranja</button>
@@ -513,7 +524,7 @@
           </div>
         </section>
 
-        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.8.0</span></p>
+        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.9.0</span></p>
       </div>
     </section>
   </main>
@@ -663,8 +674,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="./js/i18n.js?v=0.8.0"></script>
-  <script src="./js/store.js?v=0.8.0"></script>
-  <script src="./js/app.js?v=0.8.0"></script>
+  <script src="./js/i18n.js?v=0.9.0"></script>
+  <script src="./js/store.js?v=0.9.0"></script>
+  <script src="./js/app.js?v=0.9.0"></script>
 </body>
 </html>

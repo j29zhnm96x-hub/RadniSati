@@ -13,6 +13,12 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.9.0
+
+- **Početak samo za danas**: na kartici Danas je polje **Početak** — postavi 09:00 i cijeli dan se računa od 09:00 (odbrojavanje, zarada, "Spremi dan"). Vrijedi samo za taj datum, a reset gumb vraća zadano vrijeme iz Postavki.
+- **Kraj nije poznat**: prekidač za dane kad ne znaš kad ćeš završiti. Sat tada broji **od početka prema gore** (`Odrađeno`), zarada raste bez ograničenja, a **Spremi dan** upiše stvarno odrađene sate (zaokruženo na 0,25 h).
+- Dok je "Kraj nije poznat" uključen, nema automatskog spremanja na kraju smjene — dan završavaš sam kad stvarno završiš.
+
 ## What's new in 0.8.0
 
 - **Povijest → Dodaj propušteni dan**: upišeš samo datum i koliko si sati radio; satnica za taj datum, dnevna naknada i ukupni iznos izračunaju se kao za svaki drugi dan, a dan ulazi u Povijest i Mjesec.

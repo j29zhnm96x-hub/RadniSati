@@ -60,6 +60,8 @@
       closed: {},
       holidays: {},
       vacations: [],
+      starts: {},
+      openEnds: {},
       days: {}
     };
   }
@@ -185,6 +187,26 @@
         out.vacations.push({ id: vacationId, from: vacation.from, to: vacation.to });
       }
       out.vacations.sort(function (a, b) { return a.from.localeCompare(b.from); });
+    }
+
+    if (isPlainObject(input.openEnds)) {
+      var openKeys = Object.keys(input.openEnds);
+      for (var o = 0; o < openKeys.length; o += 1) {
+        var openDate = openKeys[o];
+        if (!isValidDateKey(openDate)) continue;
+        if (input.openEnds[openDate] !== true) continue;
+        out.openEnds[openDate] = true;
+      }
+    }
+
+    if (isPlainObject(input.starts)) {
+      var startKeys = Object.keys(input.starts);
+      for (var s = 0; s < startKeys.length; s += 1) {
+        var startDate = startKeys[s];
+        if (!isValidDateKey(startDate)) continue;
+        if (!isValidTime(input.starts[startDate])) continue;
+        out.starts[startDate] = input.starts[startDate];
+      }
     }
 
     if (hasDays) {

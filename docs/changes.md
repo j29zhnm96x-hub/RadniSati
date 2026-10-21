@@ -1,5 +1,14 @@
 # Changes
 
+## v0.9.0 — 2026-10-21
+
+- Per-day start time: new `starts` date→"HH:MM" map, edited directly on the Today card with a native time field; a reset button appears only when the day is overridden. The countdown, earnings and the save action all follow the override; the global start in Settings stays untouched.
+- Open-ended day: new `openEnds` date→true map with a "Kraj nije poznat" toggle on the Today card. While active, the live card shows elapsed time counting up (`Odrađeno`), earnings grow without the plan cap, the progress bar and the planned-hours row hide, and the auto-save is skipped.
+- "Spremi dan" in open mode stores the actually worked hours rounded to 0.25 h and closes the day, so the countdown jumps to the next working start.
+- Open end also works on weekends, holidays and vacation days (useful for extra shifts), and the "before start" state still counts down to the start.
+- Both maps are additive and backward compatible (schema stays 1); export/import includes them.
+- Tests: 32 browser checks for the shift controls plus 15 new unit checks; version bump to 0.9.0.
+
 ## v0.8.0 — 2026-10-21
 
 - History gained an "Dodaj propušteni dan" card: date (max today) plus hours, nothing else required. The entry is stored like a normal day, so the rate valid on that date, the daily allowance and the month totals are calculated automatically.

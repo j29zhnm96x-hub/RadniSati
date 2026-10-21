@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.8.0";
+  var APP_VERSION = "0.9.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -36,8 +36,9 @@
       "todayBaseDetail", "todayBase", "todayAllowanceRow", "todayAllowance",
       "todayTravelValue", "todayOtherValue", "todayPreviewTotal", "todayTotal",
       "todayHeroFormula", "todayDelete", "todaySave",
-      "liveCard", "liveAmount", "liveHint", "liveClock", "liveState", "liveProgressBar",
-      "livePlanMinus", "livePlanPlus", "livePlanValue", "liveSaveDay",
+      "liveCard", "liveAmount", "liveHint", "liveClock", "liveState", "liveProgressBar", "liveProgress",
+      "livePlanMinus", "livePlanPlus", "livePlanValue", "liveSaveDay", "livePlanRow",
+      "liveStartInput", "liveStartReset", "liveOpenToggle",
       "updateBanner", "updateBannerText", "updateBannerApply", "updateBannerDismiss",
       "historyEmpty", "historyGroups",
       "addDayDate", "addDayHours", "addDayDateError", "addDayHoursError", "addDayBtn",
@@ -308,8 +309,17 @@
     }
   }
 
+  function isOpenEnd(dateISO) {
+    return Boolean(data.openEnds && data.openEnds[dateISO] === true);
+  }
+
+  function startTimeFor(dateISO) {
+    if (data.starts && store.isValidTime(data.starts[dateISO])) return data.starts[dateISO];
+    return data.settings.workStart;
+  }
+
   function shiftBounds(now) {
-    var parts = data.settings.workStart.split(":");
+    var parts = startTimeFor(isoFromDate(now)).split(":");
     var start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), Number(parts[0]), Number(parts[1]), 0, 0);
     var dateISO = isoFromDate(now);
     var plan = planFor(dateISO);
@@ -325,15 +335,27 @@
 
   function liveSnapshot(now) {
     var bounds = shiftBounds(now);
-    var rate = effectiveRate(bounds.dateISO);
+    var dateISO = bounds.dateISO;
+    var rate = effectiveRate(dateISO);
     var plan = bounds.plan;
     var planMs = plan * 3600000;
     var elapsedMs = now.getTime() - bounds.start.getTime();
-    var closed = isDayClosed(bounds.dateISO);
+    var closed = isDayClosed(dateISO);
     var workedMs = Math.max(0, Math.min(elapsedMs, planMs));
     var state = "running";
     var target = bounds.end;
-    if (plan <= 0) {
+
+    if (isOpenEnd(dateISO) && !closed) {
+      if (elapsedMs < 0) {
+        state = "before";
+        target = bounds.start;
+        workedMs = 0;
+      } else {
+        state = "open";
+        target = null;
+        workedMs = Math.max(0, elapsedMs);
+      }
+    } else if (plan <= 0) {
       state = "off";
       target = bounds.nextStart;
       workedMs = 0;
@@ -344,22 +366,36 @@
     } else if (elapsedMs < 0) {
       state = "before";
       target = bounds.start;
+      workedMs = 0;
     } else if (elapsedMs >= planMs) {
       state = "finished";
       target = bounds.nextStart;
+      workedMs = planMs;
     }
+
     return {
       plan: plan,
       rate: rate,
       amount: (workedMs / 3600000) * rate,
-      progress: state === "finished" ? 1 : (planMs > 0 ? Math.max(0, Math.min(1, elapsedMs / planMs)) : 0),
+      progress: state === "finished" ? 1 : (state === "open" || planMs <= 0 ? 0 : Math.max(0, Math.min(1, elapsedMs / planMs))),
       state: state,
       closed: closed,
-      holiday: isHoliday(bounds.dateISO),
-      vacation: isVacation(bounds.dateISO),
+      openEnd: isOpenEnd(dateISO),
+      holiday: isHoliday(dateISO),
+      vacation: isVacation(dateISO),
+      start: bounds.start,
       target: target,
-      remainingMs: Math.max(0, target.getTime() - now.getTime())
+      remainingMs: target ? Math.max(0, target.getTime() - now.getTime()) : Math.max(0, elapsedMs)
     };
+  }
+
+  function elapsedPlanHours(now) {
+    var dateISO = isoFromDate(now);
+    var parts = startTimeFor(dateISO).split(":");
+    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), Number(parts[0]), Number(parts[1]), 0, 0);
+    var elapsed = now.getTime() - start.getTime();
+    if (elapsed <= 0) return 0;
+    return Math.max(0.25, Math.round((elapsed / 3600000) * 4) / 4);
   }
 
   function formatCountdown(ms) {
@@ -419,7 +455,7 @@
   }
 
   function saveDayFromPlan(iso, options) {
-    var plan = planFor(iso);
+    var plan = options && typeof options.hours === "number" ? options.hours : planFor(iso);
     if (plan <= 0) return false;
 
     var entry = getEntry(iso);
@@ -447,6 +483,7 @@
 
   function maybeAutoSaveDay(snapshot, now) {
     if (snapshot.state !== "finished" || snapshot.closed) return;
+    if (snapshot.openEnd) return;
     if (snapshot.plan <= 0) return;
     var bounds = shiftBounds(now);
     if (!wasShiftWitnessed(now, bounds)) return;
@@ -472,13 +509,15 @@
 
   function closeTodayWithPlan() {
     var iso = todayISO();
-    var plan = planFor(iso);
-    if (plan <= 0) return;
-    if (!saveDayFromPlan(iso, { force: true, fromForm: true })) return;
+    var now = new Date();
+    var openEnd = isOpenEnd(iso);
+    var hours = openEnd ? elapsedPlanHours(now) : planFor(iso);
+    if (hours <= 0) return;
+    if (!saveDayFromPlan(iso, { force: true, fromForm: true, hours: hours })) return;
 
     if (!data.closed) data.closed = {};
     data.closed[iso] = true;
-    autoSaveKey = iso + ":" + plan;
+    autoSaveKey = iso + ":" + hours;
     witnessedDate = iso;
     persist();
 
@@ -486,7 +525,7 @@
     renderHistory();
     renderMonth();
     renderLiveCard(new Date());
-    toast(i18n.t("toastDayClosed", { hours: formatNumber(plan) }));
+    toast(i18n.t("toastDayClosed", { hours: formatNumber(hours) }));
   }
 
   function renderLiveCard(now) {
@@ -494,6 +533,8 @@
     var time = now || new Date();
     var snapshot = liveSnapshot(time);
     var hasRate = snapshot.rate > 0;
+    var openEnd = snapshot.state === "open";
+    var dateISO = isoFromDate(time);
 
     var remaining = formatRemaining(snapshot.remainingMs);
     elements.liveClock.textContent = remaining.text;
@@ -506,30 +547,87 @@
     if (snapshot.state === "off") {
       stateText = i18n.t(snapshot.vacation ? "liveVacation" : (snapshot.holiday ? "liveHoliday" : "liveDayOff"));
     } else if (snapshot.state === "before") {
-      stateText = i18n.t("liveStartsAt", { time: data.settings.workStart });
+      stateText = i18n.t("liveStartsAt", { time: startTimeFor(dateISO) });
     } else if (snapshot.state === "finished") {
       stateText = i18n.t("liveNextStart");
+    } else if (snapshot.state === "open") {
+      stateText = i18n.t("liveOpenState");
     } else {
       stateText = i18n.t("liveRemaining");
     }
     elements.liveState.textContent = stateText;
+
+    elements.liveProgress.hidden = openEnd;
     elements.liveProgressBar.style.width = (snapshot.progress * 100) + "%";
+    elements.livePlanRow.hidden = openEnd;
     elements.livePlanValue.textContent = i18n.t("livePlanValue", { hours: formatNumber(snapshot.plan) });
     elements.livePlanMinus.disabled = snapshot.plan <= 0;
     elements.livePlanPlus.disabled = snapshot.plan >= 24;
 
-    elements.liveSaveDay.hidden = snapshot.plan <= 0;
-    elements.liveSaveDay.disabled = snapshot.plan <= 0 || snapshot.closed;
+    if (document.activeElement !== elements.liveStartInput) {
+      elements.liveStartInput.value = startTimeFor(dateISO);
+    }
+    elements.liveStartReset.hidden = !(data.starts && data.starts[dateISO]);
+    elements.liveOpenToggle.setAttribute("aria-pressed", snapshot.openEnd ? "true" : "false");
+    elements.liveOpenToggle.classList.toggle("is-on", snapshot.openEnd);
+
+    var saveHours = openEnd ? elapsedPlanHours(time) : snapshot.plan;
+    elements.liveSaveDay.hidden = saveHours <= 0;
+    elements.liveSaveDay.disabled = saveHours <= 0 || snapshot.closed;
     elements.liveSaveDay.textContent = snapshot.closed
       ? i18n.t("liveDaySaved")
-      : i18n.t("liveSavePlan", { hours: formatNumber(snapshot.plan) });
+      : i18n.t("liveSavePlan", { hours: formatNumber(saveHours) });
 
-    if (snapshot.state === "running") {
-      witnessedDate = isoFromDate(time);
+    if (snapshot.state === "running" || openEnd) {
+      witnessedDate = dateISO;
       recordLastSeen(time);
     } else if (snapshot.state === "finished") {
       maybeAutoSaveDay(snapshot, time);
     }
+  }
+
+  function changeStartTime() {
+    var iso = todayISO();
+    var value = elements.liveStartInput.value;
+    if (!store.isValidTime(value)) {
+      elements.liveStartInput.value = startTimeFor(iso);
+      return;
+    }
+    if (!data.starts) data.starts = {};
+    if (value === data.settings.workStart) {
+      delete data.starts[iso];
+    } else {
+      data.starts[iso] = value;
+    }
+    clearDayClosed(iso);
+    persist();
+    renderToday(false);
+  }
+
+  function resetStartTime() {
+    var iso = todayISO();
+    if (!data.starts || !data.starts[iso]) return;
+    delete data.starts[iso];
+    clearDayClosed(iso);
+    persist();
+    renderToday(false);
+  }
+
+  function toggleOpenEnd() {
+    var iso = todayISO();
+    if (!data.openEnds) data.openEnds = {};
+    var turningOn = !isOpenEnd(iso);
+    if (turningOn) {
+      data.openEnds[iso] = true;
+      clearDayClosed(iso);
+      autoSaveKey = null;
+    } else {
+      delete data.openEnds[iso];
+      autoSaveKey = null;
+    }
+    persist();
+    renderToday(false);
+    toast(i18n.t(turningOn ? "openEndOn" : "openEndOff"));
   }
 
   function changePlanHours(delta) {
@@ -2179,6 +2277,9 @@
     elements.livePlanMinus.addEventListener("click", function () { changePlanHours(-0.25); });
     elements.livePlanPlus.addEventListener("click", function () { changePlanHours(0.25); });
     elements.liveSaveDay.addEventListener("click", closeTodayWithPlan);
+    elements.liveStartInput.addEventListener("change", changeStartTime);
+    elements.liveStartReset.addEventListener("click", resetStartTime);
+    elements.liveOpenToggle.addEventListener("click", toggleOpenEnd);
 
     elements.checkUpdateBtn.addEventListener("click", function () { checkForUpdate(); });
     elements.updateNowBtn.addEventListener("click", performUpdate);

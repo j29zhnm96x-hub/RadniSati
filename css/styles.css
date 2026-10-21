@@ -1424,6 +1424,76 @@ fieldset.field {
   border-top: 1px solid var(--border);
 }
 
+.live-shift-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.live-shift-label {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.live-shift-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.live-time {
+  width: 94px;
+  min-height: 40px;
+  padding: 0 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--field-bg);
+  color: var(--ink);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.live-reset {
+  width: 36px;
+  height: 36px;
+}
+
+.live-reset svg {
+  width: 16px;
+  height: 16px;
+}
+
+.live-open-chip {
+  min-height: 42px;
+  flex: 1 1 100%;
+  margin-left: 0;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.live-open-chip.is-on {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.live-open-chip:focus-visible,
+.live-time:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .live-plan-label {
   font-size: 12.5px;
   font-weight: 600;
