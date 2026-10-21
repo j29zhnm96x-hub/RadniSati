@@ -1,5 +1,14 @@
 # Changes
 
+## v0.7.0 — 2026-10-21
+
+- Annual leave ranges: new `vacations` array of `{ id, from, to }` with a from/to date pair, an "Dodaj godišnji odmor" button and a removable list showing the range and its length.
+- Every date inside a range counts as non-working: plan 0, no auto-save, and the countdown jumps to the first working day after the range (e.g. Friday + 26.–30.10. leave → Monday 2.11. 08:00).
+- The live card distinguishes `Godišnji odmor` from `Praznik` and a plain day off.
+- Validation: both dates required, start ≤ end, maximum 366 days; invalid input shows an inline error and stores nothing.
+- Storage schema stays at 1: `vacations` is optional and old payloads get an empty array; export/import includes it.
+- Working-day tests grew to 32 unit checks and the settings UI suite to 41 browser checks; version bump to 0.7.0.
+
 ## v0.6.0 — 2026-10-20
 
 - Working days are configurable: `settings.workDays` holds weekday indexes (0 = Sunday) and the Settings card shows seven chips (Pon–Ned) that toggle individual days. Default stays Monday–Friday.

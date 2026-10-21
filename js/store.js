@@ -59,6 +59,7 @@
       plans: {},
       closed: {},
       holidays: {},
+      vacations: [],
       days: {}
     };
   }
@@ -169,6 +170,21 @@
         if (input.holidays[holidayDate] !== true) continue;
         out.holidays[holidayDate] = true;
       }
+    }
+
+    if (Array.isArray(input.vacations)) {
+      var seenVacations = {};
+      for (var v = 0; v < input.vacations.length; v += 1) {
+        var vacation = input.vacations[v];
+        if (!isPlainObject(vacation)) continue;
+        if (!isValidDateKey(vacation.from) || !isValidDateKey(vacation.to)) continue;
+        if (vacation.from > vacation.to) continue;
+        var vacationId = typeof vacation.id === "string" && vacation.id ? vacation.id : makeId();
+        if (seenVacations[vacationId]) vacationId = makeId();
+        seenVacations[vacationId] = true;
+        out.vacations.push({ id: vacationId, from: vacation.from, to: vacation.to });
+      }
+      out.vacations.sort(function (a, b) { return a.from.localeCompare(b.from); });
     }
 
     if (hasDays) {

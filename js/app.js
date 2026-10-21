@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.6.0";
+  var APP_VERSION = "0.7.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -49,6 +49,7 @@
       "languageControl", "exportBtn", "importBtn", "importFile", "clearBtn", "appVersion",
       "workStartInput", "plannedHoursInput", "workDaysControl",
       "holidayDate", "holidayAdd", "holidayError", "holidayList", "holidayEmpty",
+      "vacationFrom", "vacationTo", "vacationAdd", "vacationError", "vacationList", "vacationEmpty",
       "updateCurrentVersion", "checkUpdateBtn", "updateStatus", "updateAvailable",
       "updateAvailableText", "updateNowBtn",
       "dayDialog", "editorForm", "editorTitle", "editorRate", "editorClose", "editorHours",
@@ -265,8 +266,16 @@
     return Boolean(data.holidays && data.holidays[dateISO] === true);
   }
 
+  function isVacation(dateISO) {
+    var vacations = data.vacations || [];
+    for (var i = 0; i < vacations.length; i += 1) {
+      if (dateISO >= vacations[i].from && dateISO <= vacations[i].to) return true;
+    }
+    return false;
+  }
+
   function isWorkDay(dateISO) {
-    if (isHoliday(dateISO)) return false;
+    if (isHoliday(dateISO) || isVacation(dateISO)) return false;
     var weekday = dateFromISO(dateISO).getDay();
     return data.settings.workDays.indexOf(weekday) !== -1;
   }
@@ -346,6 +355,7 @@
       state: state,
       closed: closed,
       holiday: isHoliday(bounds.dateISO),
+      vacation: isVacation(bounds.dateISO),
       target: target,
       remainingMs: Math.max(0, target.getTime() - now.getTime())
     };
@@ -493,7 +503,7 @@
 
     var stateText = "";
     if (snapshot.state === "off") {
-      stateText = i18n.t(snapshot.holiday ? "liveHoliday" : "liveDayOff");
+      stateText = i18n.t(snapshot.vacation ? "liveVacation" : (snapshot.holiday ? "liveHoliday" : "liveDayOff"));
     } else if (snapshot.state === "before") {
       stateText = i18n.t("liveStartsAt", { time: data.settings.workStart });
     } else if (snapshot.state === "finished") {
@@ -1378,6 +1388,7 @@
     elements.plannedHoursInput.value = String(data.settings.plannedHours);
     renderWorkDays();
     renderHolidays();
+    renderVacations();
     renderUpdateState();
 
     elements.appVersion.textContent = "v" + APP_VERSION;
@@ -1774,6 +1785,97 @@
     toast(i18n.t("holidayRemoved"));
   }
 
+  function vacationLength(vacation) {
+    var span = dateFromISO(vacation.to).getTime() - dateFromISO(vacation.from).getTime();
+    return Math.round(span / 86400000) + 1;
+  }
+
+  function renderVacations() {
+    var iso = todayISO();
+    var list = (data.vacations || []).filter(function (item) {
+      return item.to >= iso;
+    }).sort(function (a, b) { return a.from.localeCompare(b.from); });
+
+    while (elements.vacationList.firstChild) {
+      elements.vacationList.removeChild(elements.vacationList.firstChild);
+    }
+
+    list.forEach(function (vacation) {
+      var item = document.createElement("li");
+      item.className = "holiday-item";
+
+      var label = document.createElement("span");
+      label.className = "holiday-date";
+      label.textContent = i18n.t("vacationRange", {
+        from: formatDateNumeric(vacation.from),
+        to: formatDateNumeric(vacation.to),
+        days: formatNumber(vacationLength(vacation))
+      });
+
+      var remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "icon-btn holiday-remove";
+      remove.setAttribute("data-vacation", vacation.id);
+      remove.setAttribute("aria-label", i18n.t("vacationDeleteAria", {
+        from: formatDateNumeric(vacation.from),
+        to: formatDateNumeric(vacation.to)
+      }));
+      remove.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
+
+      item.appendChild(label);
+      item.appendChild(remove);
+      elements.vacationList.appendChild(item);
+    });
+
+    elements.vacationEmpty.hidden = list.length > 0;
+  }
+
+  function addVacation() {
+    var from = elements.vacationFrom.value;
+    var to = elements.vacationTo.value;
+    if (!store.isValidDateKey(from) || !store.isValidDateKey(to)) {
+      setFieldError(elements.vacationFrom, elements.vacationError, "vacationInvalid");
+      return;
+    }
+    if (from > to) {
+      setFieldError(elements.vacationTo, elements.vacationError, "vacationOrder");
+      return;
+    }
+    clearFieldError(elements.vacationFrom, elements.vacationError);
+    clearFieldError(elements.vacationTo, elements.vacationError);
+    if (vacationLength({ from: from, to: to }) > 366) {
+      setFieldError(elements.vacationTo, elements.vacationError, "vacationTooLong");
+      return;
+    }
+
+    data.vacations.push({ id: store.makeId(), from: from, to: to });
+    data.vacations.sort(function (a, b) { return a.from.localeCompare(b.from); });
+
+    var iso = todayISO();
+    if (iso >= from && iso <= to) {
+      delete data.plans[iso];
+      clearDayClosed(iso);
+    }
+    persist();
+    elements.vacationFrom.value = "";
+    elements.vacationTo.value = "";
+    renderVacations();
+    renderToday(false);
+    toast(i18n.t("vacationAdded"));
+  }
+
+  function removeVacation(id) {
+    var before = data.vacations.length;
+    data.vacations = data.vacations.filter(function (item) {
+      return item.id !== id;
+    });
+    if (data.vacations.length === before) return;
+    persist();
+    renderVacations();
+    renderToday(false);
+    toast(i18n.t("vacationRemoved"));
+  }
+
   function exportData() {
     var payload = {
       app: "radni-sati",
@@ -1966,6 +2068,18 @@
       var button = event.target.closest("[data-holiday]");
       if (!button) return;
       removeHoliday(button.getAttribute("data-holiday"));
+    });
+    elements.vacationFrom.addEventListener("input", function () {
+      clearFieldError(elements.vacationFrom, elements.vacationError);
+    });
+    elements.vacationTo.addEventListener("input", function () {
+      clearFieldError(elements.vacationTo, elements.vacationError);
+    });
+    elements.vacationAdd.addEventListener("click", addVacation);
+    elements.vacationList.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-vacation]");
+      if (!button) return;
+      removeVacation(button.getAttribute("data-vacation"));
     });
 
     elements.livePlanMinus.addEventListener("click", function () { changePlanHours(-0.25); });

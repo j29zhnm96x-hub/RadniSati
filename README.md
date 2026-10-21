@@ -13,6 +13,13 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.7.0
+
+- **Godišnji odmor** u Postavkama → Radni dani: upišeš datum **od** i **do** i cijeli raspon se preskače — pet dana, dva tjedna, kako god.
+- Dodani rasponi se vide na listi s trajanjem (npr. `26.10.2026 – 30.10.2026 · 5 d`) i mogu se ukloniti jednim dodirom.
+- Na dan godišnjeg kartica pokazuje `Godišnji odmor`, ništa se ne sprema i odbrojavanje ide na prvi radni dan nakon povratka.
+- Primjer: petak poslije posla + godišnji od 26.–30.10. → odbrojavanje ide ravno na **ponedjeljak 2.11. u 08:00**.
+
 ## What's new in 0.6.0
 
 - **Radni dani** u Postavkama: sedam kockica (Pon–Ned) kojima odabereš koje dane radiš. Zadano je ponedjeljak–petak, a možeš uključiti i subotu ili bilo koju kombinaciju.
