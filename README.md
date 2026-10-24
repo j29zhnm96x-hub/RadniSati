@@ -13,6 +13,14 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.10.1
+
+- When the countdown reaches zero the day is saved **and closed in the same moment** — nothing is left to confirm.
+- The **Spremi dan** button on the Today card switches to a disabled **Dan je spremljen** as soon as the automatic save happens, and the countdown moves to the next working start.
+- The state survives a reload: the saved day stays closed, the form shows the stored hours and the button stays on "Dan je spremljen".
+- Changing the plan (`+` / `−`), the start time or the open-end switch still reopens the day so the countdown keeps working.
+- Version bump to 0.10.1.
+
 ## What's new in 0.10.0
 
 - **Povijest: "+" gumb** u zaglavlju otvara isti modal kao i uređivanje dana, samo prazan — datum (do danas), sati, kilometri, ostalo i napomena. Nema više stalne kartice za dodavanje.

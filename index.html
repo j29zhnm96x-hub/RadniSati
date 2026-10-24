@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1">
   <title>Radni sati</title>
-  <meta name="description" content="Jednostavno praćenje radnih sati, troškova i mjesečne zarade.">
+  <meta name="description" content="Jednostavno praÄ‡enje radnih sati, troÅ¡kova i mjeseÄne zarade.">
   <meta name="application-name" content="Radni sati">
   <meta name="theme-color" content="#f4f1e9" id="themeColorMeta">
   <meta name="color-scheme" content="light dark">
@@ -14,10 +14,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Radni sati">
 
-  <link rel="manifest" href="./manifest.webmanifest?v=0.10.0">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.10.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.10.0">
-  <link rel="stylesheet" href="./css/styles.css?v=0.10.0">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.10.1">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.10.1">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.10.1">
+  <link rel="stylesheet" href="./css/styles.css?v=0.10.1">
 
   <script>
     (function () {
@@ -47,8 +47,8 @@
     <div class="update-banner" id="updateBanner" role="status" hidden>
       <p class="update-banner-text" id="updateBannerText"></p>
       <div class="update-banner-actions">
-        <button class="btn btn-banner" id="updateBannerApply" type="button" data-i18n="updateNowShort">Ažuriraj</button>
-        <button class="icon-btn update-banner-close" id="updateBannerDismiss" type="button" data-i18n-aria-label="dismissUpdate" aria-label="Zatvori obavijest o ažuriranju">
+        <button class="btn btn-banner" id="updateBannerApply" type="button" data-i18n="updateNowShort">AÅ¾uriraj</button>
+        <button class="icon-btn update-banner-close" id="updateBannerDismiss" type="button" data-i18n-aria-label="dismissUpdate" aria-label="Zatvori obavijest o aÅ¾uriranju">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6 6 18"/>
           </svg>
@@ -61,7 +61,7 @@
         <div class="header-copy">
           <p class="brand" data-i18n="appName">Radni sati</p>
           <h1 id="todayHeading" data-i18n="navToday">Danas</h1>
-          <p class="page-subtitle" data-i18n="todaySubtitle">Zabilježi svoj radni dan.</p>
+          <p class="page-subtitle" data-i18n="todaySubtitle">ZabiljeÅ¾i svoj radni dan.</p>
         </div>
         <div class="date-chip">
           <span id="todayWeekday"></span>
@@ -73,9 +73,9 @@
         <section class="live-card" id="liveCard" aria-labelledby="liveLabel">
           <div class="live-top">
             <div class="live-earn">
-              <p class="live-label" id="liveLabel" data-i18n="liveEarned">Zarađeno do sada</p>
-              <p class="live-amount" id="liveAmount">0,00 €</p>
-              <p class="live-hint" id="liveHint" hidden data-i18n="liveNoRate">Postavi satnicu u Postavkama kako bi se zarada mogla izračunati.</p>
+              <p class="live-label" id="liveLabel" data-i18n="liveEarned">ZaraÄ‘eno do sada</p>
+              <p class="live-amount" id="liveAmount">0,00 â‚¬</p>
+              <p class="live-hint" id="liveHint" hidden data-i18n="liveNoRate">Postavi satnicu u Postavkama kako bi se zarada mogla izraÄunati.</p>
             </div>
             <div class="live-clock-wrap">
               <p class="live-clock" id="liveClock">--:--:--</p>
@@ -88,10 +88,10 @@
           </div>
 
           <div class="live-shift-row">
-            <label class="live-shift-label" for="liveStartInput" data-i18n="liveStartLabel">Početak danas</label>
+            <label class="live-shift-label" for="liveStartInput" data-i18n="liveStartLabel">PoÄetak danas</label>
             <div class="live-shift-controls">
               <input class="live-time" id="liveStartInput" type="time" autocomplete="off" step="300">
-              <button class="icon-btn live-reset" id="liveStartReset" type="button" hidden data-i18n-aria-label="liveStartReset" aria-label="Vrati zadano vrijeme početka">
+              <button class="icon-btn live-reset" id="liveStartReset" type="button" hidden data-i18n-aria-label="liveStartReset" aria-label="Vrati zadano vrijeme poÄetka">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10a8 8 0 1 1 2.34 5.66"/><path d="M4 4v6h6"/></svg>
               </button>
             </div>
@@ -101,9 +101,9 @@
           <div class="live-plan-row" id="livePlanRow">
             <span class="live-plan-label" data-i18n="livePlanLabel">Danas radim</span>
             <div class="stepper">
-              <button class="stepper-btn" id="livePlanMinus" type="button" data-i18n-aria-label="livePlanLess" aria-label="Smanji planirane sate">−</button>
+              <button class="stepper-btn" id="livePlanMinus" type="button" data-i18n-aria-label="livePlanLess" aria-label="Smanji planirane sate">âˆ’</button>
               <span class="stepper-value" id="livePlanValue">8 h</span>
-              <button class="stepper-btn" id="livePlanPlus" type="button" data-i18n-aria-label="livePlanMore" aria-label="Povećaj planirane sate">+</button>
+              <button class="stepper-btn" id="livePlanPlus" type="button" data-i18n-aria-label="livePlanMore" aria-label="PoveÄ‡aj planirane sate">+</button>
             </div>
           </div>
 
@@ -111,8 +111,8 @@
         </section>
 
         <section class="hero-card" aria-labelledby="todayEarningsLabel">
-          <p class="hero-label" id="todayEarningsLabel" data-i18n="todayEarnings">Današnja zarada</p>
-          <p class="hero-total" id="todayTotal">0,00 €</p>
+          <p class="hero-label" id="todayEarningsLabel" data-i18n="todayEarnings">DanaÅ¡nja zarada</p>
+          <p class="hero-total" id="todayTotal">0,00 â‚¬</p>
           <p class="hero-formula" id="todayHeroFormula"></p>
         </section>
 
@@ -153,7 +153,7 @@
               <label for="todayOther" data-i18n="otherLabel">Ostalo</label>
               <div class="input-shell">
                 <input class="field-input" id="todayOther" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" aria-describedby="todayOtherError">
-                <span class="input-suffix" aria-hidden="true">€</span>
+                <span class="input-suffix" aria-hidden="true">â‚¬</span>
               </div>
               <p class="field-error" id="todayOtherError" hidden></p>
             </div>
@@ -165,39 +165,39 @@
           </div>
 
           <div class="calc-box">
-            <p class="calc-title" data-i18n="calcTitle">Izračun</p>
+            <p class="calc-title" data-i18n="calcTitle">IzraÄun</p>
             <dl class="calc-list">
               <div class="calc-row">
                 <dt>
                   <span data-i18n="basePay">Osnovna zarada</span>
                   <span class="calc-detail" id="todayBaseDetail"></span>
                 </dt>
-                <dd class="money" id="todayBase">0,00 €</dd>
+                <dd class="money" id="todayBase">0,00 â‚¬</dd>
               </div>
               <div class="calc-row" id="todayAllowanceRow">
                 <dt data-i18n="dailyAllowance">Dnevna naknada</dt>
-                <dd class="money" id="todayAllowance">0,00 €</dd>
+                <dd class="money" id="todayAllowance">0,00 â‚¬</dd>
               </div>
               <div class="calc-row">
                 <dt>
-                  <span data-i18n="travelLabel">Putni trošak</span>
+                  <span data-i18n="travelLabel">Putni troÅ¡ak</span>
                   <span class="calc-detail" id="todayTravelDetail"></span>
                 </dt>
-                <dd class="money" id="todayTravelValue">0,00 €</dd>
+                <dd class="money" id="todayTravelValue">0,00 â‚¬</dd>
               </div>
               <div class="calc-row">
                 <dt data-i18n="otherLabel">Ostalo</dt>
-                <dd class="money" id="todayOtherValue">0,00 €</dd>
+                <dd class="money" id="todayOtherValue">0,00 â‚¬</dd>
               </div>
               <div class="calc-row calc-total">
                 <dt data-i18n="total">Ukupno</dt>
-                <dd class="money" id="todayPreviewTotal">0,00 €</dd>
+                <dd class="money" id="todayPreviewTotal">0,00 â‚¬</dd>
               </div>
             </dl>
           </div>
 
           <div class="form-actions">
-            <button class="btn btn-danger-quiet" id="todayDelete" type="button" hidden data-i18n="deleteDay">Izbriši dan</button>
+            <button class="btn btn-danger-quiet" id="todayDelete" type="button" hidden data-i18n="deleteDay">IzbriÅ¡i dan</button>
             <button class="btn btn-primary" id="todaySave" type="submit" data-i18n="saveDay">Spremi dan</button>
           </div>
         </form>
@@ -209,7 +209,7 @@
         <div class="header-copy">
           <p class="brand" data-i18n="appName">Radni sati</p>
           <h1 id="historyHeading" data-i18n="navHistory">Povijest</h1>
-          <p class="page-subtitle" data-i18n="historySubtitle">Svi zabilježeni dani, najnoviji prvi.</p>
+          <p class="page-subtitle" data-i18n="historySubtitle">Svi zabiljeÅ¾eni dani, najnoviji prvi.</p>
         </div>
         <button class="icon-btn header-action" id="addDayBtn" type="button" data-i18n-aria-label="addDayAction" aria-label="Dodaj dan">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -224,8 +224,8 @@
             <path d="M5 4h14a1 1 0 0 1 1 1v15H4V5a1 1 0 0 1 1-1Z"/>
             <path d="M8 8h8M8 12h8M8 16h5"/>
           </svg>
-          <h2 data-i18n="historyEmptyTitle">Još nema unosa</h2>
-          <p data-i18n="historyEmptyText">Zabilježi današnje sate na kartici Danas. Povijest se pojavljuje ovdje.</p>
+          <h2 data-i18n="historyEmptyTitle">JoÅ¡ nema unosa</h2>
+          <p data-i18n="historyEmptyText">ZabiljeÅ¾i danaÅ¡nje sate na kartici Danas. Povijest se pojavljuje ovdje.</p>
         </div>
         <div id="historyGroups"></div>
       </div>
@@ -236,7 +236,7 @@
         <div class="header-copy">
           <p class="brand" data-i18n="appName">Radni sati</p>
           <h1 id="monthHeading" data-i18n="navMonth">Mjesec</h1>
-          <p class="page-subtitle" data-i18n="monthSubtitle">Mjesečni pregled zarade.</p>
+          <p class="page-subtitle" data-i18n="monthSubtitle">MjeseÄni pregled zarade.</p>
         </div>
       </header>
 
@@ -248,7 +248,7 @@
             </svg>
           </button>
           <h2 class="month-label" id="monthLabel"></h2>
-          <button class="icon-btn month-arrow" id="monthNext" type="button" data-i18n-aria-label="nextMonth" aria-label="Sljedeći mjesec">
+          <button class="icon-btn month-arrow" id="monthNext" type="button" data-i18n-aria-label="nextMonth" aria-label="SljedeÄ‡i mjesec">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="m9 5 7 7-7 7"/>
             </svg>
@@ -256,12 +256,12 @@
         </div>
 
         <section class="hero-card month-hero" aria-labelledby="monthSalaryLabel">
-          <p class="hero-label" id="monthSalaryLabel" data-i18n="monthSalary">Plaća za mjesec</p>
-          <p class="hero-total" id="monthTotal">0,00 €</p>
+          <p class="hero-label" id="monthSalaryLabel" data-i18n="monthSalary">PlaÄ‡a za mjesec</p>
+          <p class="hero-total" id="monthTotal">0,00 â‚¬</p>
           <p class="hero-formula" id="monthFormula"></p>
         </section>
 
-        <section class="card stats-card" data-i18n-aria-label="monthStatsLabel" aria-label="Mjesečni ukupni iznosi">
+        <section class="card stats-card" data-i18n-aria-label="monthStatsLabel" aria-label="MjeseÄni ukupni iznosi">
           <div class="stats-grid">
             <div class="stat">
               <span class="stat-label" data-i18n="daysRecorded">Dani</span>
@@ -273,19 +273,19 @@
             </div>
             <div class="stat">
               <span class="stat-label" data-i18n="monthBase">Osnovna zarada</span>
-              <strong class="stat-value money" id="monthBase">0,00 €</strong>
+              <strong class="stat-value money" id="monthBase">0,00 â‚¬</strong>
             </div>
             <div class="stat">
               <span class="stat-label" data-i18n="monthAllowance">Dnevna naknada</span>
-              <strong class="stat-value money" id="monthAllowance">0,00 €</strong>
+              <strong class="stat-value money" id="monthAllowance">0,00 â‚¬</strong>
             </div>
             <div class="stat">
-              <span class="stat-label" data-i18n="monthTravel">Putni trošak</span>
-              <strong class="stat-value money" id="monthTravel">0,00 €</strong>
+              <span class="stat-label" data-i18n="monthTravel">Putni troÅ¡ak</span>
+              <strong class="stat-value money" id="monthTravel">0,00 â‚¬</strong>
             </div>
             <div class="stat">
               <span class="stat-label" data-i18n="monthOther">Ostalo</span>
-              <strong class="stat-value money" id="monthOther">0,00 €</strong>
+              <strong class="stat-value money" id="monthOther">0,00 â‚¬</strong>
             </div>
           </div>
         </section>
@@ -317,7 +317,7 @@
           </svg>
           <div>
             <h2 data-i18n="firstRunTitle">Prvo postavi satnicu</h2>
-            <p data-i18n="firstRunText">Unesi iznos po satu kako bi se zarada mogla izračunati. Datum možeš promijeniti ako satnica vrijedi od ranije.</p>
+            <p data-i18n="firstRunText">Unesi iznos po satu kako bi se zarada mogla izraÄunati. Datum moÅ¾eÅ¡ promijeniti ako satnica vrijedi od ranije.</p>
           </div>
         </section>
 
@@ -329,7 +329,7 @@
           <div class="current-rate">
             <span class="current-rate-label" data-i18n="currentRate">Trenutna satnica</span>
             <strong class="current-rate-value">
-              <span id="currentRateValue">—</span>
+              <span id="currentRateValue">â€”</span>
               <span class="current-rate-unit" id="currentRateUnit" data-i18n="perHour">po satu</span>
             </strong>
           </div>
@@ -340,7 +340,7 @@
                 <label for="rateAmount" data-i18n="rateAmountLabel">Iznos satnice</label>
                 <div class="input-shell">
                   <input class="field-input" id="rateAmount" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="rateAmountError">
-                  <span class="input-suffix" aria-hidden="true">€</span>
+                  <span class="input-suffix" aria-hidden="true">â‚¬</span>
                 </div>
                 <p class="field-error" id="rateAmountError" hidden></p>
               </div>
@@ -350,7 +350,7 @@
                 <p class="field-error" id="rateDateError" hidden></p>
               </div>
             </div>
-            <p class="section-hint" data-i18n="rateNote">Promjena vrijedi od odabranog datuma. Stariji dani zadržavaju staru satnicu.</p>
+            <p class="section-hint" data-i18n="rateNote">Promjena vrijedi od odabranog datuma. Stariji dani zadrÅ¾avaju staru satnicu.</p>
             <button class="btn btn-primary btn-block" type="submit" data-i18n="saveRate">Spremi satnicu</button>
           </form>
 
@@ -376,7 +376,7 @@
             <label for="allowanceAmount" data-i18n="allowanceAmountLabel">Iznos naknade</label>
             <div class="input-shell">
               <input class="field-input" id="allowanceAmount" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="allowanceError">
-              <span class="input-suffix" aria-hidden="true">€</span>
+              <span class="input-suffix" aria-hidden="true">â‚¬</span>
             </div>
             <p class="field-error" id="allowanceError" hidden></p>
           </div>
@@ -384,7 +384,7 @@
 
         <section class="card" aria-labelledby="travelHeading">
           <div class="card-heading">
-            <h2 id="travelHeading" data-i18n="travelSection">Putni trošak</h2>
+            <h2 id="travelHeading" data-i18n="travelSection">Putni troÅ¡ak</h2>
           </div>
           <div class="field-grid">
             <div class="field">
@@ -399,7 +399,7 @@
               <label for="travelRateInput" data-i18n="travelRateLabel">Cijena po kilometru</label>
               <div class="input-shell">
                 <input class="field-input" id="travelRateInput" type="text" inputmode="decimal" autocomplete="off" aria-describedby="travelRateError">
-                <span class="input-suffix" aria-hidden="true">€</span>
+                <span class="input-suffix" aria-hidden="true">â‚¬</span>
               </div>
               <p class="field-error" id="travelRateError" hidden></p>
             </div>
@@ -413,7 +413,7 @@
           </div>
           <div class="field-grid">
             <div class="field">
-              <label for="workStartInput" data-i18n="workStartLabel">Početak rada</label>
+              <label for="workStartInput" data-i18n="workStartLabel">PoÄetak rada</label>
               <input class="field-input" id="workStartInput" type="time" step="60" aria-describedby="workTimeHint">
             </div>
             <div class="field">
@@ -435,12 +435,12 @@
             <button class="weekday-chip" type="button" data-weekday="1" aria-pressed="true" data-i18n="weekdayMon">Pon</button>
             <button class="weekday-chip" type="button" data-weekday="2" aria-pressed="true" data-i18n="weekdayTue">Uto</button>
             <button class="weekday-chip" type="button" data-weekday="3" aria-pressed="true" data-i18n="weekdayWed">Sri</button>
-            <button class="weekday-chip" type="button" data-weekday="4" aria-pressed="true" data-i18n="weekdayThu">Čet</button>
+            <button class="weekday-chip" type="button" data-weekday="4" aria-pressed="true" data-i18n="weekdayThu">ÄŒet</button>
             <button class="weekday-chip" type="button" data-weekday="5" aria-pressed="true" data-i18n="weekdayFri">Pet</button>
             <button class="weekday-chip" type="button" data-weekday="6" aria-pressed="false" data-i18n="weekdaySat">Sub</button>
             <button class="weekday-chip" type="button" data-weekday="0" aria-pressed="false" data-i18n="weekdaySun">Ned</button>
           </div>
-          <p class="section-hint" data-i18n="workDaysHint">Neoznačeni dani se preskaču u odbrojavanju.</p>
+          <p class="section-hint" data-i18n="workDaysHint">NeoznaÄeni dani se preskaÄu u odbrojavanju.</p>
 
           <div class="field holiday-field">
             <label for="holidayDate" data-i18n="holidaysLabel">Praznici i slobodni dani</label>
@@ -454,16 +454,16 @@
           </div>
 
           <fieldset class="field holiday-field">
-            <legend class="field-legend" data-i18n="vacationLabel">Godišnji odmor</legend>
+            <legend class="field-legend" data-i18n="vacationLabel">GodiÅ¡nji odmor</legend>
             <div class="vacation-row">
               <input class="field-input" id="vacationFrom" type="date" autocomplete="off" aria-label="Od datuma" data-i18n-aria-label="vacationFrom" aria-describedby="vacationError">
-              <span class="vacation-dash" aria-hidden="true">–</span>
+              <span class="vacation-dash" aria-hidden="true">â€“</span>
               <input class="field-input" id="vacationTo" type="date" autocomplete="off" aria-label="Do datuma" data-i18n-aria-label="vacationTo" aria-describedby="vacationError">
             </div>
             <p class="field-error" id="vacationError" hidden></p>
-            <button class="btn btn-secondary btn-block vacation-add" id="vacationAdd" type="button" data-i18n="vacationAdd">Dodaj godišnji odmor</button>
+            <button class="btn btn-secondary btn-block vacation-add" id="vacationAdd" type="button" data-i18n="vacationAdd">Dodaj godiÅ¡nji odmor</button>
             <ul class="holiday-list" id="vacationList"></ul>
-            <p class="section-hint" id="vacationEmpty" data-i18n="vacationEmpty">Nema unesenog godišnjeg odmora.</p>
+            <p class="section-hint" id="vacationEmpty" data-i18n="vacationEmpty">Nema unesenog godiÅ¡njeg odmora.</p>
           </fieldset>
         </section>
 
@@ -508,33 +508,33 @@
           <div class="card-heading">
             <h2 id="dataHeading" data-i18n="dataTitle">Podaci</h2>
           </div>
-          <p class="section-hint" data-i18n="dataNote">Podaci se čuvaju samo na ovom uređaju.</p>
+          <p class="section-hint" data-i18n="dataNote">Podaci se Äuvaju samo na ovom ureÄ‘aju.</p>
           <div class="data-actions">
             <button class="btn btn-secondary" id="exportBtn" type="button" data-i18n="exportData">Izvezi podatke</button>
             <button class="btn btn-secondary" id="importBtn" type="button" data-i18n="importData">Uvezi podatke</button>
             <input id="importFile" type="file" accept="application/json,.json" hidden>
-            <button class="btn btn-danger-quiet btn-full" id="clearBtn" type="button" data-i18n="clearData">Izbriši sve podatke</button>
+            <button class="btn btn-danger-quiet btn-full" id="clearBtn" type="button" data-i18n="clearData">IzbriÅ¡i sve podatke</button>
           </div>
         </section>
 
         <section class="card" aria-labelledby="updateHeading">
           <div class="card-heading">
-            <h2 id="updateHeading" data-i18n="updateSection">Ažuriranje</h2>
+            <h2 id="updateHeading" data-i18n="updateSection">AÅ¾uriranje</h2>
           </div>
           <div class="update-version-row">
             <span class="update-version-label" data-i18n="currentVersion">Trenutna verzija</span>
-            <strong class="update-version-value" id="updateCurrentVersion">v0.10.0</strong>
+            <strong class="update-version-value" id="updateCurrentVersion">v0.10.1</strong>
           </div>
           <p class="section-hint" data-i18n="updateHint">Provjeri je li dostupna nova verzija aplikacije.</p>
-          <button class="btn btn-secondary btn-block" id="checkUpdateBtn" type="button" data-i18n="checkUpdates">Provjeri ažuriranja</button>
+          <button class="btn btn-secondary btn-block" id="checkUpdateBtn" type="button" data-i18n="checkUpdates">Provjeri aÅ¾uriranja</button>
           <p class="update-status" id="updateStatus" role="status" aria-live="polite" hidden></p>
           <div class="update-available" id="updateAvailable" hidden>
             <p class="update-available-text" id="updateAvailableText"></p>
-            <button class="btn btn-primary btn-block" id="updateNowBtn" type="button" data-i18n="updateNow">Ažuriraj sada</button>
+            <button class="btn btn-primary btn-block" id="updateNowBtn" type="button" data-i18n="updateNow">AÅ¾uriraj sada</button>
           </div>
         </section>
 
-        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.10.0</span></p>
+        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.10.1</span></p>
       </div>
     </section>
   </main>
@@ -629,7 +629,7 @@
             <label for="editorOther" data-i18n="otherLabel">Ostalo</label>
             <div class="input-shell">
               <input class="field-input" id="editorOther" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="editorOtherError">
-              <span class="input-suffix" aria-hidden="true">€</span>
+              <span class="input-suffix" aria-hidden="true">â‚¬</span>
             </div>
             <p class="field-error" id="editorOtherError" hidden></p>
           </div>
@@ -641,40 +641,40 @@
         </div>
 
         <div class="calc-box">
-          <p class="calc-title" data-i18n="calcTitle">Izračun</p>
+          <p class="calc-title" data-i18n="calcTitle">IzraÄun</p>
           <dl class="calc-list">
             <div class="calc-row">
               <dt>
                 <span data-i18n="basePay">Osnovna zarada</span>
                 <span class="calc-detail" id="editorBaseDetail"></span>
               </dt>
-              <dd class="money" id="editorBase">0,00 €</dd>
+              <dd class="money" id="editorBase">0,00 â‚¬</dd>
             </div>
             <div class="calc-row" id="editorAllowanceRow">
               <dt data-i18n="dailyAllowance">Dnevna naknada</dt>
-              <dd class="money" id="editorAllowance">0,00 €</dd>
+              <dd class="money" id="editorAllowance">0,00 â‚¬</dd>
             </div>
             <div class="calc-row">
               <dt>
-                <span data-i18n="travelLabel">Putni trošak</span>
+                <span data-i18n="travelLabel">Putni troÅ¡ak</span>
                 <span class="calc-detail" id="editorTravelDetail"></span>
               </dt>
-              <dd class="money" id="editorTravelValue">0,00 €</dd>
+              <dd class="money" id="editorTravelValue">0,00 â‚¬</dd>
             </div>
             <div class="calc-row">
               <dt data-i18n="otherLabel">Ostalo</dt>
-              <dd class="money" id="editorOtherValue">0,00 €</dd>
+              <dd class="money" id="editorOtherValue">0,00 â‚¬</dd>
             </div>
             <div class="calc-row calc-total">
               <dt data-i18n="total">Ukupno</dt>
-              <dd class="money" id="editorTotal">0,00 €</dd>
+              <dd class="money" id="editorTotal">0,00 â‚¬</dd>
             </div>
           </dl>
         </div>
       </div>
 
       <div class="sheet-actions">
-        <button class="btn btn-danger-quiet" id="editorDelete" type="button" data-i18n="deleteDay">Izbriši dan</button>
+        <button class="btn btn-danger-quiet" id="editorDelete" type="button" data-i18n="deleteDay">IzbriÅ¡i dan</button>
         <button class="btn btn-primary" id="editorSave" type="submit" data-i18n="save">Spremi</button>
       </div>
     </form>
@@ -693,8 +693,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="./js/i18n.js?v=0.10.0"></script>
-  <script src="./js/store.js?v=0.10.0"></script>
-  <script src="./js/app.js?v=0.10.0"></script>
+  <script src="./js/i18n.js?v=0.10.1"></script>
+  <script src="./js/store.js?v=0.10.1"></script>
+  <script src="./js/app.js?v=0.10.1"></script>
 </body>
 </html>

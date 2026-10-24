@@ -1,5 +1,14 @@
 # Changes
 
+## v0.10.1 — 2026-10-24
+
+- The automatic save at the end of the countdown now also marks the day as closed in the same write, so the shift is finished without any confirmation step.
+- The live-card save button switches to a disabled "Dan je spremljen" immediately when the automatic save fires, instead of still offering "Spremi dan · 8 h".
+- The closed state persists across reloads; the Today form shows the saved hours and its button reads "Ažuriraj dan".
+- Changing the planned hours, the per-day start time or the open-end switch still clears the closed flag and reopens the countdown.
+- Countdown suite extended to 55 checks (auto-close flag, disabled button, reload persistence).
+- Version bump to 0.10.1.
+
 ## v0.10.0 — 2026-10-21
 
 - History: the inline "add a missed day" card is gone; a "+" button in the History header opens the existing day modal in add mode, with a date field (max today), hours, kilometres, other and note.

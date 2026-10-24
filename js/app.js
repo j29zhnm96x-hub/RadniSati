@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.10.0";
+  var APP_VERSION = "0.10.1";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -204,7 +204,7 @@
 
   function parseLocaleNumber(raw) {
     var value = String(raw == null ? "" : raw).trim();
-    value = value.replace(/\s/g, "").replace(/\u00a0/g, "").replace(/\u202f/g, "").replace(/€/g, "");
+    value = value.replace(/\s/g, "").replace(/\u00a0/g, "").replace(/\u202f/g, "").replace(/â‚¬/g, "");
     if (!value) return null;
 
     var comma = value.lastIndexOf(",");
@@ -530,12 +530,20 @@
     autoSaveKey = key;
     if (!saveDayFromPlan(bounds.dateISO)) return;
 
+    /* The shift is done: close the day right away so nothing is left to confirm. */
+    if (!data.closed) data.closed = {};
+    data.closed[bounds.dateISO] = true;
+    witnessedDate = bounds.dateISO;
+    persist();
+
     if (isTodayFormDirty(entry)) {
       updateTodayEntryControls();
       updateTodayPreview();
     } else {
       fillTodayForm();
     }
+    elements.liveSaveDay.disabled = true;
+    elements.liveSaveDay.textContent = i18n.t("liveDaySaved");
     renderHistory();
     renderMonth();
     toast(i18n.t("toastDayAutoSaved", { hours: formatNumber(snapshot.plan) }));
@@ -895,7 +903,7 @@
       month: "navMonth",
       settings: "navSettings"
     };
-    document.title = i18n.t("appName") + " — " + i18n.t(viewKeys[currentView] || "navToday");
+    document.title = i18n.t("appName") + " â€” " + i18n.t(viewKeys[currentView] || "navToday");
   }
 
   function updateQuickChipLabels() {
@@ -2013,7 +2021,7 @@
 
       var label = document.createElement("span");
       label.className = "holiday-date";
-      label.textContent = formatDateNumeric(date) + " · " + capitalizeFirst(formatWeekdayShort(date));
+      label.textContent = formatDateNumeric(date) + " Â· " + capitalizeFirst(formatWeekdayShort(date));
 
       var remove = document.createElement("button");
       remove.type = "button";
