@@ -14,10 +14,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Radni sati">
 
-  <link rel="manifest" href="./manifest.webmanifest?v=0.10.1">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.10.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.10.1">
-  <link rel="stylesheet" href="./css/styles.css?v=0.10.1">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.11.0">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.11.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.11.0">
+  <link rel="stylesheet" href="./css/styles.css?v=0.11.0">
 
   <script>
     (function () {
@@ -419,7 +419,7 @@
             <div class="field">
               <label for="plannedHoursInput" data-i18n="plannedHoursLabel">Planirani sati dnevno</label>
               <div class="input-shell">
-                <input class="field-input" id="plannedHoursInput" type="number" inputmode="decimal" min="0" max="24" step="0.25" autocomplete="off" aria-describedby="workTimeHint">
+                <input class="field-input" id="plannedHoursInput" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="workTimeHint">
                 <span class="input-suffix" aria-hidden="true" data-i18n="hourUnit">h</span>
               </div>
             </div>
@@ -504,6 +504,47 @@
           </fieldset>
         </section>
 
+        <section class="card" aria-labelledby="guideHeading">
+          <div class="card-heading">
+            <h2 id="guideHeading" data-i18n="guideTitle">Upute za korištenje</h2>
+          </div>
+          <p class="section-hint" data-i18n="guideIntro">Kratki vodič kroz sve dijelove aplikacije. Otvori i pročitaj ono što te zanima.</p>
+          <details class="guide" id="guideDetails">
+            <summary data-i18n="guideOpen">Otvori upute</summary>
+            <div class="guide-body">
+              <h3 data-i18n="guideDayTitle">Dnevni unos</h3>
+              <p data-i18n="guideDayText">Na kartici Danas upiši sate (npr. 8 ili 8:30), kilometre i po potrebi iznos pod Ostalo te napomenu. Spremi dan gumbom ispod obrasca; ako je dan već spremljen, gumb piše Ažuriraj dan.</p>
+
+              <h3 data-i18n="guideCountdownTitle">Odbrojavanje i automatsko spremanje</h3>
+              <p data-i18n="guideCountdownText">Sat na vrhu broji do kraja radnog dana. Kada dođe do 00:00:00, dan se sam sprema i zatvara pa ništa ne treba potvrđivati. Ako želiš završiti ranije, pritisni Spremi dan · X h.</p>
+
+              <h3 data-i18n="guideStartTitle">Početak i kraj dana</h3>
+              <p data-i18n="guideStartText">Početak mijenjaš samo za taj dan, a reset vraća vrijeme iz Postavki. Uključi Kraj nije poznat kad ne znaš kad ćeš završiti: sat tada broji odrađeno vrijeme, a Spremi dan upiše stvarne sate.</p>
+
+              <h3 data-i18n="guideHistoryTitle">Povijest</h3>
+              <p data-i18n="guideHistoryText">Gumb + u zaglavlju dodaje propušteni dan: odabereš datum, sate i kilometre. Klik na postojeći dan otvara isto uređivanje, a ikona kante briše dan uz potvrdu.</p>
+
+              <h3 data-i18n="guideWorkDaysTitle">Radni dani, praznici i godišnji</h3>
+              <p data-i18n="guideWorkDaysText">U Postavkama označi dane koje radiš. Praznici i godišnji odmor se preskaču, a odbrojavanje ide na prvi sljedeći radni dan.</p>
+
+              <h3 data-i18n="guideRateTitle">Satnica</h3>
+              <p data-i18n="guideRateText">Upiši iznos po satu i datum od kojeg vrijedi. Kad se satnica promijeni, dodaj novi unos s novim datumom — stari dani ostaju izračunati po staroj satnici.</p>
+
+              <h3 data-i18n="guideTravelTitle">Putni trošak</h3>
+              <p data-i18n="guideTravelText">Upiši koliko kilometara napraviš u jednom danu i cijenu po kilometru. Za dan s više kilometara samo promijeni broj u obrascu i trošak se odmah preračuna.</p>
+
+              <h3 data-i18n="guideMonthTitle">Mjesečni pregled</h3>
+              <p data-i18n="guideMonthText">Kartica Mjesec zbraja sate, zaradu, putni trošak i ostalo za odabrani mjesec. Mjesec mijenjaš strelicama lijevo i desno.</p>
+
+              <h3 data-i18n="guideLookTitle">Tema, jezik i ažuriranje</h3>
+              <p data-i18n="guideLookText">Tema se sama mijenja danju i noću, a možeš odabrati i svijetlu ili tamnu. Jezik prebacuješ između hrvatskog i engleskog. Kad se pojavi nova verzija, pritisni Ažuriraj sada.</p>
+
+              <h3 data-i18n="guideDataTitle">Podaci</h3>
+              <p data-i18n="guideDataText">Sve se sprema samo na ovom uređaju. Povremeno izvezi podatke kao sigurnosnu kopiju, a na novom telefonu ih uvezi.</p>
+            </div>
+          </details>
+        </section>
+
         <section class="card" aria-labelledby="dataHeading">
           <div class="card-heading">
             <h2 id="dataHeading" data-i18n="dataTitle">Podaci</h2>
@@ -523,7 +564,7 @@
           </div>
           <div class="update-version-row">
             <span class="update-version-label" data-i18n="currentVersion">Trenutna verzija</span>
-            <strong class="update-version-value" id="updateCurrentVersion">v0.10.1</strong>
+            <strong class="update-version-value" id="updateCurrentVersion">v0.11.0</strong>
           </div>
           <p class="section-hint" data-i18n="updateHint">Provjeri je li dostupna nova verzija aplikacije.</p>
           <button class="btn btn-secondary btn-block" id="checkUpdateBtn" type="button" data-i18n="checkUpdates">Provjeri aÅ¾uriranja</button>
@@ -534,7 +575,7 @@
           </div>
         </section>
 
-        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.10.1</span></p>
+        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.11.0</span></p>
       </div>
     </section>
   </main>
@@ -693,8 +734,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="./js/i18n.js?v=0.10.1"></script>
-  <script src="./js/store.js?v=0.10.1"></script>
-  <script src="./js/app.js?v=0.10.1"></script>
+  <script src="./js/i18n.js?v=0.11.0"></script>
+  <script src="./js/store.js?v=0.11.0"></script>
+  <script src="./js/app.js?v=0.11.0"></script>
 </body>
 </html>

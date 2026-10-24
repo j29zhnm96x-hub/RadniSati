@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.10.1";
+  var APP_VERSION = "0.11.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -175,7 +175,18 @@
 
   function formatInputHours(value) {
     var numeric = typeof value === "number" && isFinite(value) ? value : 0;
-    return formatters.inputHours.format(numeric);
+    var totalMinutes = Math.round(numeric * 60);
+    var hours = Math.floor(totalMinutes / 60);
+    var minutes = totalMinutes % 60;
+    return minutes === 0 ? String(hours) : hours + ":" + pad2(minutes);
+  }
+
+  function formatDuration(value) {
+    var numeric = typeof value === "number" && isFinite(value) ? value : 0;
+    var totalMinutes = Math.round(numeric * 60);
+    var hours = Math.floor(totalMinutes / 60);
+    var minutes = totalMinutes % 60;
+    return minutes === 0 ? String(hours) : hours + ":" + pad2(minutes);
   }
 
   function formatDateNumeric(value) {
@@ -223,6 +234,24 @@
     var parsed = Number(value);
     if (!isFinite(parsed) || parsed < 0) return null;
     return parsed;
+  }
+
+  function parseHoursInput(raw) {
+    var value = String(raw == null ? "" : raw).trim();
+    if (!value) return null;
+
+    var clock = value.match(/^(\d{1,3})\s*[:h]\s*(\d{1,2})$/i);
+    if (clock) {
+      var clockHours = Number(clock[1]);
+      var clockMinutes = Number(clock[2]);
+      if (!isFinite(clockHours) || !isFinite(clockMinutes) || clockMinutes > 59) return null;
+      return clockHours + clockMinutes / 60;
+    }
+
+    var plain = value.match(/^(\d+(?:[.,]\d+)?)\s*h$/i);
+    if (plain) value = plain[1];
+
+    return parseLocaleNumber(value);
   }
 
   function effectiveRate(dateISO) {
@@ -546,7 +575,7 @@
     elements.liveSaveDay.textContent = i18n.t("liveDaySaved");
     renderHistory();
     renderMonth();
-    toast(i18n.t("toastDayAutoSaved", { hours: formatNumber(snapshot.plan) }));
+    toast(i18n.t("toastDayAutoSaved", { hours: formatDuration(snapshot.plan) }));
   }
 
   function closeTodayWithPlan() {
@@ -567,7 +596,7 @@
     renderHistory();
     renderMonth();
     renderLiveCard(new Date());
-    toast(i18n.t("toastDayClosed", { hours: formatNumber(hours) }));
+    toast(i18n.t("toastDayClosed", { hours: formatDuration(hours) }));
   }
 
   function renderLiveCard(now) {
@@ -602,7 +631,7 @@
     elements.liveProgress.hidden = openEnd;
     elements.liveProgressBar.style.width = (snapshot.progress * 100) + "%";
     elements.livePlanRow.hidden = openEnd;
-    elements.livePlanValue.textContent = i18n.t("livePlanValue", { hours: formatNumber(snapshot.plan) });
+    elements.livePlanValue.textContent = i18n.t("livePlanValue", { hours: formatDuration(snapshot.plan) });
     elements.livePlanMinus.disabled = snapshot.plan <= 0;
     elements.livePlanPlus.disabled = snapshot.plan >= 24;
 
@@ -618,7 +647,7 @@
     elements.liveSaveDay.disabled = saveHours <= 0 || snapshot.closed;
     elements.liveSaveDay.textContent = snapshot.closed
       ? i18n.t("liveDaySaved")
-      : i18n.t("liveSavePlan", { hours: formatNumber(saveHours) });
+      : i18n.t("liveSavePlan", { hours: formatDuration(saveHours) });
 
     if (snapshot.state === "running" || openEnd) {
       witnessedDate = dateISO;
@@ -991,7 +1020,7 @@
     var kmInput = byId(prefix + "Km");
     var otherInput = byId(prefix + "Other");
     var noteInput = byId(prefix + "Note");
-    var hours = hoursInput.value.trim() === "" ? 0 : parseLocaleNumber(hoursInput.value);
+    var hours = hoursInput.value.trim() === "" ? 0 : parseHoursInput(hoursInput.value);
     var km = kmInput.value.trim() === "" ? 0 : parseLocaleNumber(kmInput.value);
     var other = otherInput.value.trim() === "" ? 0 : parseLocaleNumber(otherInput.value);
     return {
@@ -1009,7 +1038,7 @@
       : todayISO();
     if (!store.isValidDateKey(iso)) iso = todayISO();
     var breakdown = breakdownFor(iso, values);
-    var hoursFormatted = formatNumber(values.hours);
+    var hoursFormatted = formatDuration(values.hours);
     var detail = i18n.t("baseDetail", {
       hours: hoursFormatted,
       rate: formatCurrency(breakdown.rate)
@@ -1096,7 +1125,7 @@
     var hoursRaw = hoursInput.value.trim();
     var kmRaw = kmInput.value.trim();
     var otherRaw = otherInput.value.trim();
-    var hours = hoursRaw === "" ? 0 : parseLocaleNumber(hoursRaw);
+    var hours = hoursRaw === "" ? 0 : parseHoursInput(hoursRaw);
     var km = kmRaw === "" ? 0 : parseLocaleNumber(kmRaw);
     var other = otherRaw === "" ? 0 : parseLocaleNumber(otherRaw);
 
@@ -1219,7 +1248,7 @@
 
         var hours = document.createElement("span");
         hours.className = "history-hours";
-        hours.textContent = formatNumber(entry.hours) + " " + i18n.t("hourUnit");
+        hours.textContent = formatDuration(entry.hours) + " " + i18n.t("hourUnit");
 
         var total = document.createElement("span");
         total.className = "history-total";
@@ -1318,7 +1347,7 @@
 
       var hours = document.createElement("span");
       hours.className = "mini-hours";
-      hours.textContent = formatNumber(entry.hours) + " " + i18n.t("hourUnit");
+      hours.textContent = formatDuration(entry.hours) + " " + i18n.t("hourUnit");
 
       var total = document.createElement("span");
       total.className = "mini-total";
@@ -1331,13 +1360,13 @@
     });
 
     elements.monthDays.textContent = String(totals.days);
-    elements.monthHours.textContent = formatNumber(totals.hours) + " " + i18n.t("hourUnit");
+    elements.monthHours.textContent = formatDuration(totals.hours) + " " + i18n.t("hourUnit");
     elements.monthBase.textContent = formatCurrency(round2(totals.base));
     elements.monthAllowance.textContent = formatCurrency(round2(totals.allowance));
     elements.monthTravel.textContent = formatCurrency(round2(totals.travel));
     elements.monthOther.textContent = formatCurrency(round2(totals.other));
     elements.monthTotal.textContent = formatCurrency(round2(totals.total));
-    elements.monthFormula.textContent = i18n.t("monthTotalHours", { hours: formatNumber(totals.hours) });
+    elements.monthFormula.textContent = i18n.t("monthTotalHours", { hours: formatDuration(totals.hours) });
     elements.monthEmpty.hidden = dates.length > 0;
   }
 
@@ -1582,7 +1611,7 @@
     }
 
     elements.workStartInput.value = data.settings.workStart;
-    elements.plannedHoursInput.value = String(data.settings.plannedHours);
+    elements.plannedHoursInput.value = formatInputHours(data.settings.plannedHours);
     elements.travelKmInput.value = formatInputNumber(data.settings.travelKm);
     elements.travelRateInput.value = formatInputNumber(data.settings.travelRate);
     clearFieldError(elements.travelKmInput, elements.travelKmError);
@@ -1957,14 +1986,14 @@
 
   function savePlannedHours() {
     var rawText = elements.plannedHoursInput.value.trim();
-    var parsed = rawText === "" ? NaN : Number(rawText);
+    var parsed = rawText === "" ? NaN : parseHoursInput(rawText);
     if (!isFinite(parsed)) {
-      elements.plannedHoursInput.value = String(data.settings.plannedHours);
+      elements.plannedHoursInput.value = formatInputHours(data.settings.plannedHours);
       return;
     }
     var value = Math.max(0, Math.min(24, Math.round(parsed * 4) / 4));
     data.settings.plannedHours = value;
-    elements.plannedHoursInput.value = String(value);
+    elements.plannedHoursInput.value = formatInputHours(value);
     persist();
     renderLiveCard(new Date());
   }
@@ -2291,6 +2320,12 @@
         clearFieldError(input, error);
         updatePreview(prefix);
       });
+      if (suffix === "Hours") {
+        input.addEventListener("blur", function () {
+          var parsed = parseHoursInput(input.value);
+          if (parsed !== null && parsed <= 24) input.value = formatInputHours(parsed);
+        });
+      }
     });
   }
 

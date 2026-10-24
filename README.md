@@ -13,6 +13,13 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.11.0
+
+- **Upute za korištenje u Postavkama**: nova kartica s vodičem kroz sve dijelove aplikacije — dnevni unos, odbrojavanje i automatsko spremanje, početak i "Kraj nije poznat", Povijest, radni dani/praznici/godišnji, satnica, putni trošak, mjesečni pregled, tema/jezik/ažuriranje i podaci. Sve u hrvatskom i engleskom.
+- **Sati se više ne prikazuju decimalno**: umjesto `8,25 h` i `8,50 h` sada piše **8:15 h** i **8:30 h**, kao na satu. Vrijedi svugdje — plan, gumb "Spremi dan", Povijest, mjesec, izračun i poruke.
+- U polje za sate možeš upisati `8:30`, `8,5`, `8.5` ili `8h30`; kad izađeš iz polja, samo se pretvori u `8:30`.
+- Korak je i dalje 15 minuta (8:15, 8:30, 8:45), a poruka o pogrešci to sada objašnjava primjerom.
+
 ## What's new in 0.10.1
 
 - When the countdown reaches zero the day is saved **and closed in the same moment** — nothing is left to confirm.

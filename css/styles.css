@@ -1243,6 +1243,58 @@ fieldset.field {
   outline-offset: 2px;
 }
 
+.guide summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.guide summary::-webkit-details-marker {
+  display: none;
+}
+
+.guide summary::after {
+  content: "+";
+  font-size: 18px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.guide[open] summary::after {
+  content: "\2212";
+}
+
+.guide-body {
+  padding: 2px 2px 4px;
+}
+
+.guide-body h3 {
+  margin: 18px 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.guide-body h3:first-child {
+  margin-top: 16px;
+}
+
+.guide-body p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
 .data-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -1,5 +1,15 @@
 # Changes
 
+## v0.11.0 — 2026-10-24
+
+- Added a "Upute za korištenje" (How to use) card in Settings: a collapsible guide with ten sections covering daily entry, countdown and auto-save, start time/open end, History, working days/holidays/leave, hourly rate, travel costs, the month view, theme/language/updates and data export. Fully translated to Croatian and English.
+- Hours are now displayed as `h:mm` instead of decimal values: 8.25 → `8:15 h`, 8.50 → `8:30 h`, 6 → `6 h`. Applied to the live plan, save-day button, toasts, History rows, month totals, the calculation detail and the hero formula.
+- The hours inputs accept `8:30`, `8,5`, `8.5` and `8h30`; on blur the value is normalized to `8:30`. Stored values remain decimal numbers, so all calculations are unchanged.
+- The planned-hours setting is now a text field with the same parsing, and shows `8:45` for 8.75 h.
+- Updated the hours hint ("npr. 8:30") and the step error ("koraci od 15 minuta").
+- New browser suite `rs_clock_guide_ui.py` (33 checks: clock format in every surface, decimal input normalization, off-step rejection, settings value, guide open/sections/language/320px).
+- Version bump to 0.11.0.
+
 ## v0.10.1 — 2026-10-24
 
 - The automatic save at the end of the countdown now also marks the day as closed in the same write, so the shift is finished without any confirmation step.
