@@ -1,6 +1,6 @@
 "use strict";
 
-var CACHE_NAME = "radni-sati-v0.11.3";
+var CACHE_NAME = "radni-sati-v0.12.0";
 var CACHE_PREFIX = "radni-sati-";
 var INDEX_URL = new URL("./index.html", self.registration.scope).href;
 var VERSION_PATH = new URL("./version.json", self.registration.scope).pathname;
@@ -8,14 +8,14 @@ var VERSION_PATH = new URL("./version.json", self.registration.scope).pathname;
 var ASSETS = [
   "./",
   "./index.html",
-  "./css/styles.css?v=0.11.3",
-  "./js/i18n.js?v=0.11.3",
-  "./js/store.js?v=0.11.3",
-  "./js/app.js?v=0.11.3",
-  "./manifest.webmanifest?v=0.11.3",
-  "./icons/icon-192.png?v=0.11.3",
-  "./icons/icon-512.png?v=0.11.3",
-  "./icons/apple-touch-icon.png?v=0.11.3"
+  "./css/styles.css?v=0.12.0",
+  "./js/i18n.js?v=0.12.0",
+  "./js/store.js?v=0.12.0",
+  "./js/app.js?v=0.12.0",
+  "./manifest.webmanifest?v=0.12.0",
+  "./icons/icon-192.png?v=0.12.0",
+  "./icons/icon-512.png?v=0.12.0",
+  "./icons/apple-touch-icon.png?v=0.12.0"
 ];
 
 self.addEventListener("install", function (event) {
@@ -87,6 +87,20 @@ self.addEventListener("fetch", function (event) {
         }
         return response;
       });
+    })
+  );
+});
+
+self.addEventListener("notificationclick", function (event) {
+  if (event.notification) event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (list) {
+      for (var i = 0; i < list.length; i += 1) {
+        var client = list[i];
+        if ("focus" in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow("./");
+      return null;
     })
   );
 });

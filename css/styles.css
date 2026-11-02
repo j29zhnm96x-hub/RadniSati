@@ -668,6 +668,19 @@ input[type="time"] {
   line-height: 1.45;
 }
 
+.section-hint.is-error {
+  color: var(--danger);
+}
+
+.notify-status {
+  margin-top: 10px;
+  font-weight: 550;
+}
+
+#notifyTest {
+  margin-top: 12px;
+}
+
 .section-divider {
   height: 1px;
   margin: 22px 0 18px;

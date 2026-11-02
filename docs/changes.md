@@ -1,5 +1,18 @@
 # Changes
 
+## v0.12.0 — 2026-11-02
+
+- New Settings card "Obavijesti" with a "Dozvoli notifikacije" switch, a status line and a "Pošalji probnu notifikaciju" button.
+- Reminders fire 30 minutes before the shift start and 30 minutes before the shift end, using the service worker's `showNotification` with `silent: false`, a vibration pattern and a stable tag per day/kind.
+- Schedules respect working days, holidays, vacation ranges, per-day start time, planned hours, closed days and open-end days (no end reminder); times are recomputed every 30 seconds so edits apply immediately.
+- Catch-up: if the app opens up to 10 minutes after a reminder moment, the reminder is shown once; shown keys are persisted in `localStorage` (`radni-sati:notified`) with a 14-day prune to prevent duplicates.
+- Settings schema gained `notifications: false` (sanitized boolean); the preference is only stored when the browser permission is actually granted. Denied/unsupported states are explained in the UI.
+- Added a `notificationclick` handler in `sw.js` that focuses an existing window or opens the app.
+- New guide section "Obavijesti" (11 sections total), HR/EN strings, 320px layout.
+- Technical note: local notifications cannot be scheduled while the page/SW is terminated, so Android may skip them if the app is fully closed; while the app is open or backgrounded the reminders are delivered.
+- New browser suite `rs_notify_ui.py` (28 checks: toggle/permission, 07:30 start reminder, 15:30 end reminder, no duplicates, catch-up, English, denied, unsupported, test button, guide, 320px).
+- Version bump to 0.12.0.
+
 ## v0.11.3 — 2026-11-02
 
 - Disabled text selection across the whole UI: `html`/`body` now use `user-select: none` and `-webkit-touch-callout: none`, so long-press no longer selects labels, amounts, hours, guide text or opens the iOS copy menu.

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.11.3";
+  var APP_VERSION = "0.12.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -25,6 +25,11 @@
   var themeTimer = null;
   var updateState = { available: null, statusKey: null, busy: false };
   var UPDATE_DISMISS_KEY = "radni-sati:update-dismissed";
+  var NOTIFIED_KEY = "radni-sati:notified";
+  var NOTIFY_LEAD_MS = 30 * 60 * 1000;
+  var NOTIFY_CATCHUP_MS = 10 * 60 * 1000;
+  var notifyTimer = null;
+  var notifiedKeys = {};
 
   function byId(id) {
     return document.getElementById(id);
@@ -49,6 +54,7 @@
       "firstRunHint", "currentRateValue", "currentRateUnit", "rateForm", "rateAmount",
       "rateAmountError", "rateDate", "rateDateError", "rateHistoryList", "rateHistoryEmpty",
       "allowanceToggle", "allowanceAmount", "allowanceError", "themeControl",
+      "notifyToggle", "notifyStatus", "notifyTest",
       "travelKmInput", "travelRateInput", "travelKmError", "travelRateError", "travelHint",
       "languageControl", "exportBtn", "importBtn", "importFile", "clearBtn", "appVersion",
       "workStartInput", "plannedHoursInput", "workDaysControl",
@@ -1623,6 +1629,7 @@
     renderWorkDays();
     renderHolidays();
     renderVacations();
+    renderNotificationState();
     renderUpdateState();
 
     elements.appVersion.textContent = "v" + APP_VERSION;
@@ -2332,6 +2339,195 @@
     });
   }
 
+  function notificationsSupported() {
+    return typeof window.Notification === "function" && "serviceWorker" in navigator;
+  }
+
+  function notificationsEnabled() {
+    return Boolean(data && data.settings && data.settings.notifications) &&
+      notificationsSupported() && window.Notification.permission === "granted";
+  }
+
+  function loadNotifiedKeys() {
+    try {
+      var raw = window.localStorage.getItem(NOTIFIED_KEY);
+      var parsed = raw ? JSON.parse(raw) : null;
+      notifiedKeys = parsed && typeof parsed === "object" ? parsed : {};
+    } catch (error) {
+      notifiedKeys = {};
+    }
+  }
+
+  function saveNotifiedKeys() {
+    var cutoff = Date.now() - 14 * 86400000;
+    Object.keys(notifiedKeys).forEach(function (key) {
+      if (!(notifiedKeys[key] > cutoff)) delete notifiedKeys[key];
+    });
+    try {
+      window.localStorage.setItem(NOTIFIED_KEY, JSON.stringify(notifiedKeys));
+    } catch (error) {
+      /* The reminder still works without the duplicate guard. */
+    }
+  }
+
+  function wasNotified(key) {
+    return Object.prototype.hasOwnProperty.call(notifiedKeys, key);
+  }
+
+  function markNotified(key) {
+    notifiedKeys[key] = Date.now();
+    saveNotifiedKeys();
+  }
+
+  function notificationCandidates(now) {
+    var out = [];
+    for (var i = 0; i < 14; i += 1) {
+      var day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i, 12, 0, 0, 0);
+      var iso = isoFromDate(day);
+      var plan = planFor(iso);
+      if (plan <= 0) continue;
+      if (isDayClosed(iso)) continue;
+      var parts = startTimeFor(iso).split(":");
+      var start = new Date(day.getFullYear(), day.getMonth(), day.getDate(), Number(parts[0]), Number(parts[1]), 0, 0);
+      var startMs = start.getTime();
+      var endMs = startMs + plan * 3600000;
+      out.push({ key: iso + ":start", kind: "start", due: startMs - NOTIFY_LEAD_MS, moment: startMs });
+      if (!isOpenEnd(iso)) {
+        out.push({ key: iso + ":end", kind: "end", due: endMs - NOTIFY_LEAD_MS, moment: endMs });
+      }
+    }
+    return out;
+  }
+
+  function showAppNotification(candidate) {
+    var title = i18n.t("appName");
+    var bodyKey = candidate.kind === "start"
+      ? "notifyStartBody"
+      : (candidate.kind === "end" ? "notifyEndBody" : "notifyTestBody");
+    var options = {
+      body: i18n.t(bodyKey),
+      icon: "./icons/icon-192.png",
+      badge: "./icons/icon-192.png",
+      tag: "radni-sati:" + candidate.key,
+      renotify: true,
+      silent: false,
+      vibrate: [200, 100, 200],
+      data: { url: "./" }
+    };
+    try {
+      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(function (registration) {
+          return registration.showNotification(title, options);
+        }).catch(function () {});
+      } else if (window.Notification) {
+        new window.Notification(title, options);
+      }
+    } catch (error) {
+      /* Some browsers refuse notifications without an installed PWA. */
+    }
+  }
+
+  function fireDueNotifications(now) {
+    if (!notificationsEnabled()) return;
+    var time = now.getTime();
+    var candidates = notificationCandidates(now);
+    for (var i = 0; i < candidates.length; i += 1) {
+      var candidate = candidates[i];
+      if (wasNotified(candidate.key)) continue;
+      if (time < candidate.due) continue;
+      if (time >= candidate.moment) {
+        /* The moment has passed: never send a stale reminder. */
+        if (time - candidate.moment > 3600000) markNotified(candidate.key);
+        continue;
+      }
+      if (time - candidate.due > NOTIFY_CATCHUP_MS) continue;
+      markNotified(candidate.key);
+      showAppNotification(candidate);
+    }
+  }
+
+  function startNotificationScheduler() {
+    if (notifyTimer) return;
+    fireDueNotifications(new Date());
+    notifyTimer = window.setInterval(function () {
+      fireDueNotifications(new Date());
+    }, 30000);
+  }
+
+  function stopNotificationScheduler() {
+    if (notifyTimer) {
+      window.clearInterval(notifyTimer);
+      notifyTimer = null;
+    }
+  }
+
+  function renderNotificationState() {
+    if (!elements.notifyToggle) return;
+    var supported = notificationsSupported();
+    var permission = supported ? window.Notification.permission : "unsupported";
+    var enabled = Boolean(data.settings.notifications) && supported && permission === "granted";
+    elements.notifyToggle.checked = enabled;
+    elements.notifyToggle.disabled = !supported;
+    elements.notifyTest.hidden = !enabled;
+    var statusKey = "notifyOff";
+    var isError = false;
+    if (!supported) {
+      statusKey = "notifyUnsupported";
+      isError = true;
+    } else if (permission === "denied") {
+      statusKey = "notifyBlocked";
+      isError = true;
+    } else if (enabled) {
+      statusKey = "notifyOn";
+    }
+    elements.notifyStatus.textContent = i18n.t(statusKey);
+    elements.notifyStatus.classList.toggle("is-error", isError);
+  }
+
+  function toggleNotifications() {
+    var wants = elements.notifyToggle.checked;
+    if (!wants) {
+      data.settings.notifications = false;
+      persist();
+      stopNotificationScheduler();
+      renderNotificationState();
+      return;
+    }
+    if (!notificationsSupported()) {
+      data.settings.notifications = false;
+      persist();
+      renderNotificationState();
+      return;
+    }
+    var settled = false;
+    var finish = function (permission) {
+      if (settled) return;
+      settled = true;
+      data.settings.notifications = permission === "granted";
+      persist();
+      if (permission === "granted") {
+        startNotificationScheduler();
+        toast(i18n.t("notifyEnabledToast"));
+      }
+      renderNotificationState();
+    };
+    try {
+      var result = window.Notification.requestPermission(finish);
+      if (result && typeof result.then === "function") result.then(finish);
+    } catch (error) {
+      finish("denied");
+    }
+  }
+
+  function sendTestNotification() {
+    if (!notificationsEnabled()) {
+      renderNotificationState();
+      return;
+    }
+    showAppNotification({ key: "test:" + Date.now(), kind: "test" });
+    toast(i18n.t("notifyTestSent"));
+  }
+
   function bindEvents() {
     var tabs = document.querySelectorAll(".tab");
     for (var i = 0; i < tabs.length; i += 1) {
@@ -2382,6 +2578,8 @@
     });
 
     elements.allowanceToggle.addEventListener("change", toggleAllowance);
+    elements.notifyToggle.addEventListener("change", toggleNotifications);
+    elements.notifyTest.addEventListener("click", sendTestNotification);
     elements.allowanceAmount.addEventListener("input", function () {
       clearFieldError(elements.allowanceAmount, elements.allowanceError);
     });
@@ -2505,6 +2703,10 @@
       applyTheme();
       if (currentView === "today") renderToday(false);
       updateTodayDateLabels();
+      if (notificationsEnabled()) {
+        fireDueNotifications(new Date());
+        startNotificationScheduler();
+      }
     });
   }
 
@@ -2544,6 +2746,8 @@
       }, 350);
     }
     startLiveClock();
+    loadNotifiedKeys();
+    if (notificationsEnabled()) startNotificationScheduler();
     registerServiceWorker();
     if (navigator.onLine) {
       window.setTimeout(function () {

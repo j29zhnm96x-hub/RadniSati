@@ -13,6 +13,15 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.12.0
+
+- **Obavijesti (Android)**: u Postavkama je nova kartica **Obavijesti** s prekidačem **Dozvoli notifikacije**.
+- Kad je uključeno, telefón te podsjeti **30 minuta prije početka** rada („Još 30 min. do početka rada“) i **30 minuta prije kraja** („Još 30 min. do kraja rada“), na hrvatskom ili engleskom — kako je odabran jezik.
+- Notifikacija koristi sustavni zvuk i vibraciju, a dodirom se otvara aplikacija.
+- Poštuje radne dane, praznike, godišnji, promijenjeni početak dana i plan sate; dan s uključenim „Kraj nije poznat“ ne dobiva podsjetnik za kraj.
+- Gumb **Pošalji probnu notifikaciju** odmah provjeri da sve radi.
+- Napomena: Android sustav može preskočiti podsjetnik ako je aplikacija potpuno zatvorena — najsigurnije je da bude otvorena ili u pozadini.
+
 ## What's new in 0.11.3
 
 - **Nema više odabira teksta dodirom i držanjem** — aplikacija se ponaša kao klasičan UI: naslovi, iznosi, sati, gumbi i kartice se ne mogu označiti ni kopirati, niti se otvara iOS izbornik za kopiranje.

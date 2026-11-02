@@ -56,6 +56,7 @@
         workDays: [1, 2, 3, 4, 5],
         travelKm: 0,
         travelRate: 0,
+        notifications: false,
         rates: []
       },
       plans: {},
@@ -102,6 +103,9 @@
       }
       if (typeof rawSettings.allowanceEnabled === "boolean") {
         out.settings.allowanceEnabled = rawSettings.allowanceEnabled;
+      }
+      if (typeof rawSettings.notifications === "boolean") {
+        out.settings.notifications = rawSettings.notifications;
       }
       if (typeof rawSettings.allowanceAmount === "number" && isFinite(rawSettings.allowanceAmount) && rawSettings.allowanceAmount >= 0) {
         out.settings.allowanceAmount = round2(rawSettings.allowanceAmount);
