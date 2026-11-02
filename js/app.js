@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.11.0";
+  var APP_VERSION = "0.11.1";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -44,7 +44,7 @@
       "updateBanner", "updateBannerText", "updateBannerApply", "updateBannerDismiss",
       "historyEmpty", "historyGroups", "addDayBtn",
       "monthPrev", "monthNext", "monthLabel", "monthTotal", "monthFormula", "monthDays",
-      "monthHours", "monthBase", "monthAllowance", "monthTravel", "monthOther",
+      "monthHours", "monthBase", "monthAllowance", "monthTravel", "monthOther", "monthKm",
       "monthDayList", "monthEmpty",
       "firstRunHint", "currentRateValue", "currentRateUnit", "rateForm", "rateAmount",
       "rateAmountError", "rateDate", "rateDateError", "rateHistoryList", "rateHistoryEmpty",
@@ -1315,6 +1315,7 @@
     var totals = {
       days: dates.length,
       hours: 0,
+      km: 0,
       base: 0,
       allowance: 0,
       travel: 0,
@@ -1328,6 +1329,7 @@
       var entry = data.days[dateISO];
       var breakdown = breakdownFor(dateISO, entry);
       totals.hours += entry.hours;
+      totals.km += typeof entry.km === "number" && isFinite(entry.km) ? entry.km : kmForEntry(entry);
       totals.base += breakdown.base;
       totals.allowance += breakdown.allowance;
       totals.travel += breakdown.travel;
@@ -1365,6 +1367,7 @@
     elements.monthAllowance.textContent = formatCurrency(round2(totals.allowance));
     elements.monthTravel.textContent = formatCurrency(round2(totals.travel));
     elements.monthOther.textContent = formatCurrency(round2(totals.other));
+    elements.monthKm.textContent = formatNumber(round2(totals.km)) + " km";
     elements.monthTotal.textContent = formatCurrency(round2(totals.total));
     elements.monthFormula.textContent = i18n.t("monthTotalHours", { hours: formatDuration(totals.hours) });
     elements.monthEmpty.hidden = dates.length > 0;

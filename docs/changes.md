@@ -1,5 +1,14 @@
 # Changes
 
+## v0.11.1 — 2026-11-02
+
+- The month view now shows total kilometres: a full-width "Ukupno kilometara" row inside the stats card, after Dani/Sati/Osnovna zarada/Dnevna naknada/Putni trošak/Ostalo.
+- The total sums `entry.km` for every day of the selected month; legacy entries without `km` fall back to `travel ÷ travelRate`, the same rule used when editing them.
+- Empty months show `0 km`. The label is translated ("Total kilometres") and the row adapts to 320px without horizontal scroll.
+- The in-app guide's month section now mentions kilometres.
+- New browser suite `rs_month_km_ui.py` (14 checks: 122 km total with a legacy day, money total, ordering, empty month, 390/320 layout, English label).
+- Version bump to 0.11.1.
+
 ## v0.11.0 — 2026-10-24
 
 - Added a "Upute za korištenje" (How to use) card in Settings: a collapsible guide with ten sections covering daily entry, countdown and auto-save, start time/open end, History, working days/holidays/leave, hourly rate, travel costs, the month view, theme/language/updates and data export. Fully translated to Croatian and English.

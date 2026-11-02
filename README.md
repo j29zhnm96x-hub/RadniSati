@@ -13,6 +13,12 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.11.1
+
+- **Mjesečni pregled sada zbraja i kilometre**: ispod ostalih ukupnih iznosa stoji red **„Ukupno kilometara“** s vrijednošću za odabrani mjesec (npr. `122 km`).
+- Zbroj uključuje sve dane iz tog mjeseca, a stariji unosi bez upisanih kilometara pretvaraju se po cijeni po kilometru iz Postavki.
+- Mjesec bez unosa pokazuje `0 km`, a oznaka se prevodi na engleski („Total kilometres“).
+
 ## What's new in 0.11.0
 
 - **Upute za korištenje u Postavkama**: nova kartica s vodičem kroz sve dijelove aplikacije — dnevni unos, odbrojavanje i automatsko spremanje, početak i "Kraj nije poznat", Povijest, radni dani/praznici/godišnji, satnica, putni trošak, mjesečni pregled, tema/jezik/ažuriranje i podaci. Sve u hrvatskom i engleskom.
