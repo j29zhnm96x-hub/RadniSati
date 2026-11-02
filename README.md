@@ -13,6 +13,14 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.15.0
+
+- **Kilometri su sada i u tabu Mjesec, kod svakog dana.** U kartici **Po danima** uz sate i iznos, ispod sati piše npr. **10 km** ili **12,5 km**.
+- Dan bez puta pokazuje **0 km**, kao i u Povijesti.
+- Stariji dani bez upisanih kilometara i dalje dobiju točan broj iz putnog troška.
+- Zbroj u retku **Ukupno kilometara** odgovara zbroju svih dnevnih kilometara.
+- Prikaz prati jezik (**12,5 km** / **12.5 km**) i ostaje čitljiv na 320 px.
+
 ## What's new in 0.14.0
 
 - **Svaki dan u Povijesti sada pokazuje i kilometre.** Uz sate i iznos, ispod sati piše npr. **12,5 km**, a dan bez puta pokazuje **0 km**.

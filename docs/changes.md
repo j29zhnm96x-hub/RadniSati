@@ -1,5 +1,14 @@
 # Changes
 
+## v0.15.0 — 2026-11-02
+
+- The Month tab's "Po danima" / "Daily breakdown" list now shows kilometres for every day, matching the History tab: a `.mini-km` line under the hours (for example "12,5 km", "0 km").
+- Values come from the same `kmForEntry` helper, so stored `km` is used directly and legacy entries derive km from `travel ÷ travelRate`.
+- Hours and km share the same right-aligned two-line `.mini-meta` block; the row still has three columns, so 320px layouts keep working.
+- Month totals are unchanged: the per-day km values add up to the existing "Ukupno kilometara" row.
+- Extended `rs_history_km_ui.py` to 20 checks: month day-list km for stored, legacy and zero days, hours/money preserved, 320px fit, English decimal formatting.
+- Version bump to 0.15.0.
+
 ## v0.14.0 — 2026-11-02
 
 - History day rows now show kilometres for every day, not only hours and money: a new `.history-km` line under the hours reads, for example, "12,5 km" (English "12.5 km"), including "0 km" for days without travel.
