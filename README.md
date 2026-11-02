@@ -13,6 +13,12 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.11.3
+
+- **Nema više odabira teksta dodirom i držanjem** — aplikacija se ponaša kao klasičan UI: naslovi, iznosi, sati, gumbi i kartice se ne mogu označiti ni kopirati, niti se otvara iOS izbornik za kopiranje.
+- Uklonjen je i sivi „flash“ pri dodiru (tap highlight).
+- **Polja za unos ostaju normalna**: u njima možeš postaviti kursor, označiti i obrisati tekst, zalijepiti i koristiti Ctrl+A — i u obrascu Dana i u modalu Povijesti i u Postavkama.
+
 ## What's new in 0.11.2
 
 - **Ispravljeni „hijeroglifi“** koji su se pojavljivali kod valute i hrvatskih slova: `€` u polju „Iznos satnice“, „Cijena po kilometru“, „Iznos naknade“ i na karticama, crtica `–` kod godišnjeg odmora, `·` u datumima te slova č/ć/ž/š/đ u tekstu koji se prikaže prije nego se učita prijevod.

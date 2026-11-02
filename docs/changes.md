@@ -1,5 +1,13 @@
 # Changes
 
+## v0.11.3 — 2026-11-02
+
+- Disabled text selection across the whole UI: `html`/`body` now use `user-select: none` and `-webkit-touch-callout: none`, so long-press no longer selects labels, amounts, hours, guide text or opens the iOS copy menu.
+- Added `-webkit-tap-highlight-color: transparent` to remove the grey tap flash, matching the native-app feel.
+- Inputs, textareas and selects keep `user-select: text` (and the default callout), so cursor placement, selection, paste, Ctrl+A and typing in the Today form, the day modal and Settings are unchanged.
+- New browser suite `rs_selection_ui.py` (16 checks: computed styles, drag-select produces no selection, input selection/typing, modal and settings fields, guide text not selectable).
+- Version bump to 0.11.3.
+
 ## v0.11.2 — 2026-11-02
 
 - Fixed the broken characters ("hieroglyphs") around currency and Croatian letters: `€` in the hourly-rate suffix, daily allowance and price-per-kilometre inputs, the `–` between vacation dates, the `·` separator in date lines, and Croatian diacritics in static fallback text in `index.html`, `js/app.js` and `manifest.webmanifest`.
