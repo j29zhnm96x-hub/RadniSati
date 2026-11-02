@@ -677,6 +677,14 @@ input[type="time"] {
   font-weight: 550;
 }
 
+.notify-lead-grid {
+  margin-top: 14px;
+}
+
+#notifyLeadHint {
+  margin-top: 8px;
+}
+
 #notifyTest {
   margin-top: 12px;
 }

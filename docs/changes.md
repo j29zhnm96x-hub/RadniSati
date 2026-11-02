@@ -1,5 +1,18 @@
 # Changes
 
+## v0.13.0 — 2026-11-02
+
+- Notifications can now be tuned per reminder: two Settings fields, "Podsjetnik prije početka" and "Podsjetnik prije kraja", accept 1–180 minutes each.
+- Defaults stay at 30 minutes for both, so existing behaviour is unchanged until the user edits a field.
+- Notification body uses the configured lead: "Još {lead} min. do početka rada" / "{lead} min. until work starts" (and the end equivalents).
+- Settings schema gained `notifyStartLead: 30` and `notifyEndLead: 30`, sanitized as whole numbers from 1 to 180; invalid or missing values fall back to 30.
+- Reminder keys and tags now include the lead (`<date>:start:<lead>`), so changing the lead can still produce a reminder for today if its new moment has not passed; the 10-minute catch-up and 14-day dedupe are unchanged.
+- Inputs are disabled when the browser does not support notifications; a rejection shows "Upiši broj minuta od 1 do 180." inline and keeps the previous stored value.
+- Changing a lead while reminders are on immediately re-evaluates due reminders.
+- Guide updated (HR/EN), settings card laid out for 390px and 320px widths.
+- Browser suite `rs_notify_ui.py` expanded to 37 checks, including defaults, invalid input, custom 45/15 minutes (07:15 and 15:45), stable tags with the lead, and the existing toggle/catch-up/English/permission cases.
+- Version bump to 0.13.0.
+
 ## v0.12.0 — 2026-11-02
 
 - New Settings card "Obavijesti" with a "Dozvoli notifikacije" switch, a status line and a "Pošalji probnu notifikaciju" button.

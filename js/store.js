@@ -32,6 +32,11 @@
     return Math.round(value * 4) / 4;
   }
 
+  function isValidLeadMinutes(value) {
+    return typeof value === "number" && isFinite(value) &&
+      Math.floor(value) === value && value >= 1 && value <= 180;
+  }
+
   function isValidDateKey(value) {
     if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
     var parts = value.split("-");
@@ -57,6 +62,8 @@
         travelKm: 0,
         travelRate: 0,
         notifications: false,
+        notifyStartLead: 30,
+        notifyEndLead: 30,
         rates: []
       },
       plans: {},
@@ -106,6 +113,12 @@
       }
       if (typeof rawSettings.notifications === "boolean") {
         out.settings.notifications = rawSettings.notifications;
+      }
+      if (isValidLeadMinutes(rawSettings.notifyStartLead)) {
+        out.settings.notifyStartLead = rawSettings.notifyStartLead;
+      }
+      if (isValidLeadMinutes(rawSettings.notifyEndLead)) {
+        out.settings.notifyEndLead = rawSettings.notifyEndLead;
       }
       if (typeof rawSettings.allowanceAmount === "number" && isFinite(rawSettings.allowanceAmount) && rawSettings.allowanceAmount >= 0) {
         out.settings.allowanceAmount = round2(rawSettings.allowanceAmount);

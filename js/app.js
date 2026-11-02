@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.12.0";
+  var APP_VERSION = "0.13.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -26,7 +26,9 @@
   var updateState = { available: null, statusKey: null, busy: false };
   var UPDATE_DISMISS_KEY = "radni-sati:update-dismissed";
   var NOTIFIED_KEY = "radni-sati:notified";
-  var NOTIFY_LEAD_MS = 30 * 60 * 1000;
+  var NOTIFY_DEFAULT_LEAD = 30;
+  var NOTIFY_MIN_LEAD = 1;
+  var NOTIFY_MAX_LEAD = 180;
   var NOTIFY_CATCHUP_MS = 10 * 60 * 1000;
   var notifyTimer = null;
   var notifiedKeys = {};
@@ -55,6 +57,7 @@
       "rateAmountError", "rateDate", "rateDateError", "rateHistoryList", "rateHistoryEmpty",
       "allowanceToggle", "allowanceAmount", "allowanceError", "themeControl",
       "notifyToggle", "notifyStatus", "notifyTest",
+      "notifyStartLead", "notifyEndLead", "notifyStartLeadError", "notifyEndLeadError",
       "travelKmInput", "travelRateInput", "travelKmError", "travelRateError", "travelHint",
       "languageControl", "exportBtn", "importBtn", "importFile", "clearBtn", "appVersion",
       "workStartInput", "plannedHoursInput", "workDaysControl",
@@ -2348,6 +2351,16 @@
       notificationsSupported() && window.Notification.permission === "granted";
   }
 
+  function leadFor(kind) {
+    var key = kind === "end" ? "notifyEndLead" : "notifyStartLead";
+    var value = data && data.settings ? Number(data.settings[key]) : NOTIFY_DEFAULT_LEAD;
+    if (!isFinite(value)) return NOTIFY_DEFAULT_LEAD;
+    value = Math.round(value);
+    if (value < NOTIFY_MIN_LEAD) return NOTIFY_MIN_LEAD;
+    if (value > NOTIFY_MAX_LEAD) return NOTIFY_MAX_LEAD;
+    return value;
+  }
+
   function loadNotifiedKeys() {
     try {
       var raw = window.localStorage.getItem(NOTIFIED_KEY);
@@ -2391,9 +2404,23 @@
       var start = new Date(day.getFullYear(), day.getMonth(), day.getDate(), Number(parts[0]), Number(parts[1]), 0, 0);
       var startMs = start.getTime();
       var endMs = startMs + plan * 3600000;
-      out.push({ key: iso + ":start", kind: "start", due: startMs - NOTIFY_LEAD_MS, moment: startMs });
+      var startLead = leadFor("start");
+      var endLead = leadFor("end");
+      out.push({
+        key: iso + ":start:" + startLead,
+        kind: "start",
+        lead: startLead,
+        due: startMs - startLead * 60000,
+        moment: startMs
+      });
       if (!isOpenEnd(iso)) {
-        out.push({ key: iso + ":end", kind: "end", due: endMs - NOTIFY_LEAD_MS, moment: endMs });
+        out.push({
+          key: iso + ":end:" + endLead,
+          kind: "end",
+          lead: endLead,
+          due: endMs - endLead * 60000,
+          moment: endMs
+        });
       }
     }
     return out;
@@ -2405,7 +2432,7 @@
       ? "notifyStartBody"
       : (candidate.kind === "end" ? "notifyEndBody" : "notifyTestBody");
     var options = {
-      body: i18n.t(bodyKey),
+      body: i18n.t(bodyKey, { lead: candidate.lead }),
       icon: "./icons/icon-192.png",
       badge: "./icons/icon-192.png",
       tag: "radni-sati:" + candidate.key,
@@ -2469,6 +2496,10 @@
     elements.notifyToggle.checked = enabled;
     elements.notifyToggle.disabled = !supported;
     elements.notifyTest.hidden = !enabled;
+    elements.notifyStartLead.value = String(leadFor("start"));
+    elements.notifyEndLead.value = String(leadFor("end"));
+    elements.notifyStartLead.disabled = !supported;
+    elements.notifyEndLead.disabled = !supported;
     var statusKey = "notifyOff";
     var isError = false;
     if (!supported) {
@@ -2528,6 +2559,28 @@
     toast(i18n.t("notifyTestSent"));
   }
 
+  function saveNotifyLead(kind) {
+    var isStart = kind !== "end";
+    var input = isStart ? elements.notifyStartLead : elements.notifyEndLead;
+    var error = isStart ? elements.notifyStartLeadError : elements.notifyEndLeadError;
+    var raw = String(input.value || "").trim();
+    var minutes = /^\d{1,3}$/.test(raw) ? Number(raw) : NaN;
+    if (!isFinite(minutes) || minutes < NOTIFY_MIN_LEAD || minutes > NOTIFY_MAX_LEAD) {
+      setFieldError(input, error, "notifyLeadInvalid");
+      return;
+    }
+    clearFieldError(input, error);
+    if (isStart) {
+      data.settings.notifyStartLead = minutes;
+    } else {
+      data.settings.notifyEndLead = minutes;
+    }
+    input.value = String(minutes);
+    persist();
+    renderNotificationState();
+    if (notificationsEnabled()) fireDueNotifications(new Date());
+  }
+
   function bindEvents() {
     var tabs = document.querySelectorAll(".tab");
     for (var i = 0; i < tabs.length; i += 1) {
@@ -2580,6 +2633,18 @@
     elements.allowanceToggle.addEventListener("change", toggleAllowance);
     elements.notifyToggle.addEventListener("change", toggleNotifications);
     elements.notifyTest.addEventListener("click", sendTestNotification);
+    elements.notifyStartLead.addEventListener("input", function () {
+      clearFieldError(elements.notifyStartLead, elements.notifyStartLeadError);
+    });
+    elements.notifyStartLead.addEventListener("change", function () {
+      saveNotifyLead("start");
+    });
+    elements.notifyEndLead.addEventListener("input", function () {
+      clearFieldError(elements.notifyEndLead, elements.notifyEndLeadError);
+    });
+    elements.notifyEndLead.addEventListener("change", function () {
+      saveNotifyLead("end");
+    });
     elements.allowanceAmount.addEventListener("input", function () {
       clearFieldError(elements.allowanceAmount, elements.allowanceError);
     });

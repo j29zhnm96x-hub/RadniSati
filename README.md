@@ -13,6 +13,15 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.13.0
+
+- **Vrijeme podsjetnika možeš sam odrediti.** U Postavkama, ispod prekidača za obavijesti, sada su dva polja: **Podsjetnik prije početka** i **Podsjetnik prije kraja**.
+- Upisuješ broj minuta od **1 do 180** — npr. 45 znači da notifikacija stiže 45 minuta prije početka rada, a 15 znači 15 minuta prije kraja.
+- Default ostaje **30 minuta** za oba polja, pa se ništa ne mijenja dok sam ne upišeš drugu vrijednost.
+- Tekst notifikacije prati postavku: „Još 45 min. do početka rada“ / „45 min. until work starts“.
+- Neispravan unos (npr. 0 ili 200) prikaže poruku i ne sprema se; vrijednost ostaje prethodna.
+- Promjena se odmah primjenjuje na današnji i buduće dane, a vrijednosti se spremaju na uređaj.
+
 ## What's new in 0.12.0
 
 - **Obavijesti (Android)**: u Postavkama je nova kartica **Obavijesti** s prekidačem **Dozvoli notifikacije**.

@@ -14,10 +14,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Radni sati">
 
-  <link rel="manifest" href="./manifest.webmanifest?v=0.12.0">
-  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.12.0">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.12.0">
-  <link rel="stylesheet" href="./css/styles.css?v=0.12.0">
+  <link rel="manifest" href="./manifest.webmanifest?v=0.13.0">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.13.0">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.13.0">
+  <link rel="stylesheet" href="./css/styles.css?v=0.13.0">
 
   <script>
     (function () {
@@ -416,12 +416,31 @@
             <h2 id="notifyHeading" data-i18n="notifySection">Obavijesti</h2>
           </div>
           <div class="switch-row">
-            <p class="section-hint" id="notifyHint" data-i18n="notifyHint">Podsjetnik 30 minuta prije početka i prije kraja radnog vremena.</p>
+            <p class="section-hint" id="notifyHint" data-i18n="notifyHint">Podsjetnik prije početka i prije kraja radnog vremena.</p>
             <label class="switch" for="notifyToggle">
               <input id="notifyToggle" type="checkbox" aria-labelledby="notifyHeading" aria-describedby="notifyHint notifyStatus">
               <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
             </label>
           </div>
+          <div class="field-grid notify-lead-grid">
+            <div class="field">
+              <label for="notifyStartLead" data-i18n="notifyStartLeadLabel">Podsjetnik prije početka</label>
+              <div class="input-shell">
+                <input class="field-input" id="notifyStartLead" type="number" inputmode="numeric" min="1" max="180" step="5" autocomplete="off" aria-describedby="notifyLeadHint notifyStartLeadError">
+                <span class="input-suffix" aria-hidden="true" data-i18n="minuteUnit">min</span>
+              </div>
+              <p class="field-error" id="notifyStartLeadError" hidden></p>
+            </div>
+            <div class="field">
+              <label for="notifyEndLead" data-i18n="notifyEndLeadLabel">Podsjetnik prije kraja</label>
+              <div class="input-shell">
+                <input class="field-input" id="notifyEndLead" type="number" inputmode="numeric" min="1" max="180" step="5" autocomplete="off" aria-describedby="notifyLeadHint notifyEndLeadError">
+                <span class="input-suffix" aria-hidden="true" data-i18n="minuteUnit">min</span>
+              </div>
+              <p class="field-error" id="notifyEndLeadError" hidden></p>
+            </div>
+          </div>
+          <p class="section-hint" id="notifyLeadHint" data-i18n="notifyLeadHint">Koliko minuta prije početka i prije kraja želiš podsjetnik? Od 1 do 180 minuta.</p>
           <p class="section-hint notify-status" id="notifyStatus" role="status" aria-live="polite"></p>
           <button class="btn btn-secondary btn-block" id="notifyTest" type="button" data-i18n="notifyTest" hidden>Pošalji probnu notifikaciju</button>
           <p class="section-hint" data-i18n="notifyNote">Notifikacije stižu dok je aplikacija otvorena ili u pozadini. Ako je potpuno zatvoriš, Android ih može preskočiti.</p>
@@ -560,7 +579,7 @@
               <p data-i18n="guideLookText">Tema se sama mijenja danju i noću, a možeš odabrati i svijetlu ili tamnu. Jezik prebacuješ između hrvatskog i engleskog. Kad se pojavi nova verzija, pritisni Ažuriraj sada.</p>
 
               <h3 data-i18n="guideNotifyTitle">Obavijesti</h3>
-              <p data-i18n="guideNotifyText">Uključi notifikacije u Postavkama pa ćeš 30 minuta prije početka i prije kraja rada dobiti podsjetnik sa zvukom. Android ih može preskočiti ako je aplikacija potpuno zatvorena.</p>
+              <p data-i18n="guideNotifyText">Uključi notifikacije u Postavkama i odredi koliko minuta prije početka i prije kraja rada želiš podsjetnik sa zvukom. Android ih može preskočiti ako je aplikacija potpuno zatvorena.</p>
 
               <h3 data-i18n="guideDataTitle">Podaci</h3>
               <p data-i18n="guideDataText">Sve se sprema samo na ovom uređaju. Povremeno izvezi podatke kao sigurnosnu kopiju, a na novom telefonu ih uvezi.</p>
@@ -587,7 +606,7 @@
           </div>
           <div class="update-version-row">
             <span class="update-version-label" data-i18n="currentVersion">Trenutna verzija</span>
-            <strong class="update-version-value" id="updateCurrentVersion">v0.12.0</strong>
+            <strong class="update-version-value" id="updateCurrentVersion">v0.13.0</strong>
           </div>
           <p class="section-hint" data-i18n="updateHint">Provjeri je li dostupna nova verzija aplikacije.</p>
           <button class="btn btn-secondary btn-block" id="checkUpdateBtn" type="button" data-i18n="checkUpdates">Provjeri ažuriranja</button>
@@ -598,7 +617,7 @@
           </div>
         </section>
 
-        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.12.0</span></p>
+        <p class="version-line"><span data-i18n="versionLabel">Verzija</span> <span id="appVersion">v0.13.0</span></p>
       </div>
     </section>
   </main>
@@ -757,8 +776,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="./js/i18n.js?v=0.12.0"></script>
-  <script src="./js/store.js?v=0.12.0"></script>
-  <script src="./js/app.js?v=0.12.0"></script>
+  <script src="./js/i18n.js?v=0.13.0"></script>
+  <script src="./js/store.js?v=0.13.0"></script>
+  <script src="./js/app.js?v=0.13.0"></script>
 </body>
 </html>
