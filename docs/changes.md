@@ -1,5 +1,16 @@
 # Changes
 
+## v0.16.0 — 2026-11-02
+
+- New "Izvještaj za šefa" / "Report for the boss" card at the bottom of the Month tab with a "Pošalji šefu" / "Send to boss" button.
+- The report is built from the selected month: days count, total hours, total kilometres, price per kilometre (only when `travelRate > 0`), travel cost (only when greater than 0), base pay, daily allowance, other, total, then a per-day breakdown with date, weekday, hours, km, amount and the entry note in parentheses when present.
+- Sending uses `navigator.share({ title, text })` when available (Android share sheet, installed PWAs), and falls back to copying the text with `navigator.clipboard.writeText`; a legacy `execCommand("copy")` textarea is the last resort. A failed or unavailable share also falls back to copying, and a cancelled share does nothing.
+- Status line under the button reports "Kopirano. Zalijepi u poruku ili e-mail šefu." or the failure message; it is cleared when the month changes.
+- The button is disabled for months with no entries, so nothing empty can be sent.
+- Refactored month dates and totals into `monthDates()` / `computeMonthTotals()` so the report always matches the month screen.
+- New browser suite `rs_share_month_ui.py` (25 checks: exact HR/EN report text, title, share vs clipboard fallback, rejected share, empty month, rate-0 omissions, 320px fit).
+- Version bump to 0.16.0.
+
 ## v0.15.0 — 2026-11-02
 
 - The Month tab's "Po danima" / "Daily breakdown" list now shows kilometres for every day, matching the History tab: a `.mini-km` line under the hours (for example "12,5 km", "0 km").

@@ -1088,6 +1088,15 @@ input[type="time"] {
   white-space: nowrap;
 }
 
+#shareMonthBtn {
+  margin-top: 12px;
+}
+
+.share-status {
+  margin-top: 10px;
+  font-weight: 550;
+}
+
 .mini-total {
   font-family: var(--font-mono);
   font-size: 13.5px;

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.15.0";
+  var APP_VERSION = "0.16.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -52,7 +52,7 @@
       "historyEmpty", "historyGroups", "addDayBtn",
       "monthPrev", "monthNext", "monthLabel", "monthTotal", "monthFormula", "monthDays",
       "monthHours", "monthBase", "monthAllowance", "monthTravel", "monthOther", "monthKm",
-      "monthDayList", "monthEmpty",
+      "monthDayList", "monthEmpty", "shareMonthBtn", "shareMonthStatus",
       "firstRunHint", "currentRateValue", "currentRateUnit", "rateForm", "rateAmount",
       "rateAmountError", "rateDate", "rateDateError", "rateHistoryList", "rateHistoryEmpty",
       "allowanceToggle", "allowanceAmount", "allowanceError", "themeControl",
@@ -1324,13 +1324,14 @@
     });
   }
 
-  function renderMonth() {
-    elements.monthLabel.textContent = formatMonthYear(selectedMonth.year, selectedMonth.month);
+  function monthDates() {
     var prefix = selectedMonth.year + "-" + pad2(selectedMonth.month + 1);
-    var dates = Object.keys(data.days).filter(function (dateISO) {
+    return Object.keys(data.days).filter(function (dateISO) {
       return dateISO.indexOf(prefix) === 0;
     }).sort();
+  }
 
+  function computeMonthTotals(dates) {
     var totals = {
       days: dates.length,
       hours: 0,
@@ -1341,19 +1342,32 @@
       other: 0,
       total: 0
     };
-
-    elements.monthDayList.innerHTML = "";
-
     dates.forEach(function (dateISO) {
       var entry = data.days[dateISO];
       var breakdown = breakdownFor(dateISO, entry);
       totals.hours += entry.hours;
-      totals.km += typeof entry.km === "number" && isFinite(entry.km) ? entry.km : kmForEntry(entry);
+      totals.km += kmForEntry(entry);
       totals.base += breakdown.base;
       totals.allowance += breakdown.allowance;
       totals.travel += breakdown.travel;
       totals.other += breakdown.other;
       totals.total += breakdown.total;
+    });
+    return totals;
+  }
+
+  function renderMonth() {
+    elements.monthLabel.textContent = formatMonthYear(selectedMonth.year, selectedMonth.month);
+    var dates = monthDates();
+    var totals = computeMonthTotals(dates);
+
+    elements.monthDayList.innerHTML = "";
+    elements.shareMonthBtn.disabled = dates.length === 0;
+    elements.shareMonthStatus.hidden = true;
+
+    dates.forEach(function (dateISO) {
+      var entry = data.days[dateISO];
+      var breakdown = breakdownFor(dateISO, entry);
 
       var row = document.createElement("div");
       row.className = "mini-row";
@@ -1400,6 +1414,118 @@
     elements.monthTotal.textContent = formatCurrency(round2(totals.total));
     elements.monthFormula.textContent = i18n.t("monthTotalHours", { hours: formatDuration(totals.hours) });
     elements.monthEmpty.hidden = dates.length > 0;
+  }
+
+  function reportLine(label, value) {
+    return i18n.t("reportLine", { label: label, value: value });
+  }
+
+  function monthReportText(dates, totals) {
+    var lines = [];
+    var monthName = formatMonthYear(selectedMonth.year, selectedMonth.month);
+    var rate = Number(data.settings.travelRate) || 0;
+
+    lines.push(i18n.t("reportTitle", { month: monthName }));
+    lines.push("");
+    lines.push(reportLine(i18n.t("daysRecorded"), String(totals.days)));
+    lines.push(reportLine(i18n.t("totalHours"), formatDuration(totals.hours) + " " + i18n.t("hourUnit")));
+    lines.push(reportLine(i18n.t("monthKm"), formatNumber(round2(totals.km)) + " km"));
+    if (rate > 0) {
+      lines.push(reportLine(i18n.t("travelRateLabel"), formatCurrency(rate) + " / km"));
+    }
+    if (totals.travel > 0) {
+      lines.push(reportLine(i18n.t("monthTravel"), formatCurrency(round2(totals.travel))));
+    }
+    lines.push(reportLine(i18n.t("monthBase"), formatCurrency(round2(totals.base))));
+    lines.push(reportLine(i18n.t("monthAllowance"), formatCurrency(round2(totals.allowance))));
+    lines.push(reportLine(i18n.t("monthOther"), formatCurrency(round2(totals.other))));
+    lines.push(reportLine(i18n.t("total"), formatCurrency(round2(totals.total))));
+    lines.push("");
+    lines.push(i18n.t("reportDaysHeading"));
+
+    dates.forEach(function (dateISO) {
+      var entry = data.days[dateISO];
+      var breakdown = breakdownFor(dateISO, entry);
+      var lineText = i18n.t("reportDay", {
+        date: formatDateShort(dateISO),
+        weekday: formatWeekdayShort(dateISO),
+        hours: formatDuration(entry.hours) + " " + i18n.t("hourUnit"),
+        km: formatNumber(round2(kmForEntry(entry))) + " km",
+        amount: formatCurrency(breakdown.total)
+      });
+      var note = String(entry.note || "").trim();
+      if (note) lineText += " (" + note + ")";
+      lines.push(lineText);
+    });
+
+    return lines.join("\n");
+  }
+
+  function legacyCopyText(text) {
+    try {
+      var area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.top = "-1000px";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.select();
+      var ok = document.execCommand && document.execCommand("copy");
+      document.body.removeChild(area);
+      return Boolean(ok);
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function showShareStatus(message, isError) {
+    elements.shareMonthStatus.textContent = message;
+    elements.shareMonthStatus.classList.toggle("is-error", Boolean(isError));
+    elements.shareMonthStatus.hidden = false;
+  }
+
+  function copyMonthReport(text) {
+    var done = function () {
+      showShareStatus(i18n.t("shareCopied"), false);
+    };
+    var failed = function () {
+      showShareStatus(i18n.t("shareCopyFailed"), true);
+    };
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      navigator.clipboard.writeText(text).then(done).catch(function () {
+        if (legacyCopyText(text)) done();
+        else failed();
+      });
+      return;
+    }
+    if (legacyCopyText(text)) done();
+    else failed();
+  }
+
+  function shareMonthReport() {
+    var dates = monthDates();
+    if (!dates.length) return;
+    var totals = computeMonthTotals(dates);
+    var text = monthReportText(dates, totals);
+    var title = formatMonthYear(selectedMonth.year, selectedMonth.month);
+    elements.shareMonthStatus.hidden = true;
+
+    if (navigator.share) {
+      try {
+        var pending = navigator.share({ title: title, text: text });
+        if (pending && typeof pending.catch === "function") {
+          pending.catch(function (error) {
+            if (error && error.name === "AbortError") return;
+            copyMonthReport(text);
+          });
+        }
+        return;
+      } catch (error) {
+        /* Older browsers can throw synchronously; fall back to copying. */
+      }
+    }
+    copyMonthReport(text);
   }
 
   function createTrashIcon() {
@@ -2636,6 +2762,7 @@
 
     elements.monthPrev.addEventListener("click", function () { goToMonth(-1); });
     elements.monthNext.addEventListener("click", function () { goToMonth(1); });
+    elements.shareMonthBtn.addEventListener("click", shareMonthReport);
 
     elements.rateForm.addEventListener("submit", saveRate);
     elements.rateAmount.addEventListener("input", function () {
