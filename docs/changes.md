@@ -1,5 +1,14 @@
 # Changes
 
+## v0.14.0 — 2026-11-02
+
+- History day rows now show kilometres for every day, not only hours and money: a new `.history-km` line under the hours reads, for example, "12,5 km" (English "12.5 km"), including "0 km" for days without travel.
+- The value comes from `kmForEntry`, so entries saved with `km` use it directly and legacy entries that only stored `travel` derive km as `travel ÷ travelRate`.
+- Day kilometres are formatted with the active locale, matching the month summary, and their sum matches the existing "Ukupno kilometara" row.
+- The row grid is unchanged; hours and km now share a right-aligned two-line `.history-meta` block, so the layout still fits 320px with no horizontal scroll.
+- New browser suite `rs_history_km_ui.py` (15 checks: per-day km, 0 km day, legacy km, hours/money preserved, month total 22,5 km, 320px fit, English decimals).
+- Version bump to 0.14.0.
+
 ## v0.13.0 — 2026-11-02
 
 - Notifications can now be tuned per reminder: two Settings fields, "Podsjetnik prije početka" and "Podsjetnik prije kraja", accept 1–180 minutes each.

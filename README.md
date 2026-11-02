@@ -13,6 +13,14 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.14.0
+
+- **Svaki dan u Povijesti sada pokazuje i kilometre.** Uz sate i iznos, ispod sati piše npr. **12,5 km**, a dan bez puta pokazuje **0 km**.
+- Kilometri se računaju iz zapisa dana, pa stariji dani koji imaju samo putni trošak i dalje prikazuju točan broj (trošak ÷ cijena po kilometru).
+- Zbroj kilometara po danima odgovara retku **Ukupno kilometara** u Mjesecu.
+- Prikaz prati jezik: hrvatski **12,5 km**, engleski **12.5 km**.
+- Raspored ostaje čitljiv i na 320 px — kilometri su u drugom redu desno, ispod sati.
+
 ## What's new in 0.13.0
 
 - **Vrijeme podsjetnika možeš sam odrediti.** U Postavkama, ispod prekidača za obavijesti, sada su dva polja: **Podsjetnik prije početka** i **Podsjetnik prije kraja**.

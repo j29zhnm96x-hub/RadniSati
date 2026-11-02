@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.13.0";
+  var APP_VERSION = "0.14.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -1255,16 +1255,26 @@
         dateBlock.appendChild(dateText);
         dateBlock.appendChild(weekday);
 
+        var meta = document.createElement("span");
+        meta.className = "history-meta";
+
         var hours = document.createElement("span");
         hours.className = "history-hours";
         hours.textContent = formatDuration(entry.hours) + " " + i18n.t("hourUnit");
+
+        var km = document.createElement("span");
+        km.className = "history-km";
+        km.textContent = formatNumber(round2(kmForEntry(entry))) + " km";
+
+        meta.appendChild(hours);
+        meta.appendChild(km);
 
         var total = document.createElement("span");
         total.className = "history-total";
         total.textContent = formatCurrency(breakdown.total);
 
         row.appendChild(dateBlock);
-        row.appendChild(hours);
+        row.appendChild(meta);
         row.appendChild(total);
         row.appendChild(createHistoryChevron());
 
