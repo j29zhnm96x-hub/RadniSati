@@ -1,5 +1,13 @@
 # Changes
 
+## v0.16.1 — 2026-11-02
+
+- Renamed the month report UI: the card is now "Izvještaj za obračun" (English "Report for payroll") and the button "Pošalji izvještaj" (English "Send report"), replacing "Izvještaj za šefa" / "Pošalji šefu" and "Report for the boss" / "Send to boss".
+- The hint no longer mentions a boss; it now says the month is sent for payroll/settlement. The clipboard confirmation reads "Kopirano. Zalijepi u poruku ili e-mail."
+- Report content, share-sheet and clipboard behaviour are unchanged.
+- Test suite updated (26 checks, including both card headings).
+- Version bump to 0.16.1.
+
 ## v0.16.0 — 2026-11-02
 
 - New "Izvještaj za šefa" / "Report for the boss" card at the bottom of the Month tab with a "Pošalji šefu" / "Send to boss" button.

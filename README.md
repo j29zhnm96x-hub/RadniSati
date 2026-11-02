@@ -13,9 +13,14 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.16.1
+
+- Kartica i gumb sada se zovu **„Izvještaj za obračun“** i **„Pošalji izvještaj“** (engleski **Report for payroll** / **Send report**).
+- Sadržaj izvještaja ostaje isti — sati, kilometri, cijena po kilometru, iznosi i razrada po danima.
+
 ## What's new in 0.16.0
 
-- **Gumb „Pošalji šefu“ na dnu taba Mjesec.** Pripremi cijeli mjesec u tekstu koji možeš poslati porukom, e-mailom ili preko izbornika za dijeljenje.
+- **Gumb „Pošalji izvještaj“ na dnu taba Mjesec.** Pripremi cijeli mjesec u tekstu koji možeš poslati porukom, e-mailom ili preko izbornika za dijeljenje.
 - Izvještaj sadrži: **broj dana, ukupne sate, ukupne kilometre**, cijenu po kilometru (ako je postavljena), putni trošak, osnovnu zaradu, dnevnu naknadu, ostalo i ukupan iznos.
 - Ispod toga ide **razrada po danima**: datum, dan, sati, kilometri i iznos za taj dan, plus napomena ako si je upisao.
 - Na telefonu se otvara **izbornik za dijeljenje** (WhatsApp, Viber, e-mail…), a ako dijeljenje nije podržano, tekst se **kopira u međuspremnik** uz poruku „Kopirano“.
