@@ -13,6 +13,13 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.11.2
+
+- **Ispravljeni „hijeroglifi“** koji su se pojavljivali kod valute i hrvatskih slova: `€` u polju „Iznos satnice“, „Cijena po kilometru“, „Iznos naknade“ i na karticama, crtica `–` kod godišnjeg odmora, `·` u datumima te slova č/ć/ž/š/đ u tekstu koji se prikaže prije nego se učita prijevod.
+- Uzrok je bio dvostruko kodiranje tih datoteka pri ranijim promjenama verzije; sada su svi znakovi vraćeni u ispravan UTF-8.
+- Usput je popravljeno i čišćenje znaka `€` pri upisu brojeva — unos poput `10 €` sada se ispravno pretvara u `10`.
+- Nova provjera `rs_currency_ui.py` (15 testova) traži ostatke pogrešnih znakova po cijeloj aplikaciji.
+
 ## What's new in 0.11.1
 
 - **Mjesečni pregled sada zbraja i kilometre**: ispod ostalih ukupnih iznosa stoji red **„Ukupno kilometara“** s vrijednošću za odabrani mjesec (npr. `122 km`).

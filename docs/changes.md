@@ -1,5 +1,13 @@
 # Changes
 
+## v0.11.2 — 2026-11-02
+
+- Fixed the broken characters ("hieroglyphs") around currency and Croatian letters: `€` in the hourly-rate suffix, daily allowance and price-per-kilometre inputs, the `–` between vacation dates, the `·` separator in date lines, and Croatian diacritics in static fallback text in `index.html`, `js/app.js` and `manifest.webmanifest`.
+- Cause: those three files had been round-tripped through the Windows ANSI code page during earlier version bumps, so UTF-8 sequences for €, č, ć, ž, š, đ, —, –, − and · were stored double-encoded. All 77 broken sequences were decoded back to correct UTF-8; a repo-wide scan now finds zero remaining occurrences.
+- Side fix: `parseLocaleNumber` was stripping the mojibake sequence instead of a real `€`, so "10 €" typed into a number field failed to parse. It now strips `€` correctly.
+- New browser suite `rs_currency_ui.py` (15 checks: suffixes, vacation dash, date separator, no control characters in HR/EN, 320px).
+- Version bump to 0.11.2.
+
 ## v0.11.1 — 2026-11-02
 
 - The month view now shows total kilometres: a full-width "Ukupno kilometara" row inside the stats card, after Dani/Sati/Osnovna zarada/Dnevna naknada/Putni trošak/Ostalo.

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.11.1";
+  var APP_VERSION = "0.11.2";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -215,7 +215,7 @@
 
   function parseLocaleNumber(raw) {
     var value = String(raw == null ? "" : raw).trim();
-    value = value.replace(/\s/g, "").replace(/\u00a0/g, "").replace(/\u202f/g, "").replace(/â‚¬/g, "");
+    value = value.replace(/\s/g, "").replace(/\u00a0/g, "").replace(/\u202f/g, "").replace(/€/g, "");
     if (!value) return null;
 
     var comma = value.lastIndexOf(",");
@@ -932,7 +932,7 @@
       month: "navMonth",
       settings: "navSettings"
     };
-    document.title = i18n.t("appName") + " â€” " + i18n.t(viewKeys[currentView] || "navToday");
+    document.title = i18n.t("appName") + " — " + i18n.t(viewKeys[currentView] || "navToday");
   }
 
   function updateQuickChipLabels() {
@@ -2053,7 +2053,7 @@
 
       var label = document.createElement("span");
       label.className = "holiday-date";
-      label.textContent = formatDateNumeric(date) + " Â· " + capitalizeFirst(formatWeekdayShort(date));
+      label.textContent = formatDateNumeric(date) + " · " + capitalizeFirst(formatWeekdayShort(date));
 
       var remove = document.createElement("button");
       remove.type = "button";
