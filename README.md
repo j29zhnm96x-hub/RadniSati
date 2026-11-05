@@ -13,6 +13,16 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.17.0
+
+- **Novi gumb na dnu taba Danas: „Označi dan kao neradni“.** Namijenjen danima kad se ne ide raditi — kiša, dogovor ili bilo što drugo.
+- Kad označiš dan, **nestaje iz Povijesti i Mjeseca**: sati, kilometri i iznos tog dana ne ulaze u zbroj.
+- Ako je dan već bio spremljen, aplikacija prvo pita potvrdu jer se unos briše.
+- Živa kartica tada pokazuje **„Neradni dan“**, a gumb za spremanje dnevnog plana se skriva.
+- Istim gumbom (**„Poništi neradni dan“**) vraćaš dan u radni. Ako naknadno upišeš sate i spremiš dan, oznaka se automatski poništava.
+- Postavka se pamti na uređaju i vrijedi samo za taj dan; ostali dani i postavke se ne mijenjaju.
+- Upute za korištenje dopunjene su kratkom napomenom o neradnom danu.
+
 ## What's new in 0.16.1
 
 - Kartica i gumb sada se zovu **„Izvještaj za obračun“** i **„Pošalji izvještaj“** (engleski **Report for payroll** / **Send report**).

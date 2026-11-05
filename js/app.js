@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.16.1";
+  var APP_VERSION = "0.17.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -44,7 +44,7 @@
       "todayOther", "todayOtherError", "todayNote",
       "todayBaseDetail", "todayBase", "todayAllowanceRow", "todayAllowance",
       "todayTravelValue", "todayOtherValue", "todayPreviewTotal", "todayTotal",
-      "todayHeroFormula", "todayDelete", "todaySave",
+      "todayHeroFormula", "todayDelete", "todaySave", "todayDayOff", "todayDayOffHint",
       "liveCard", "liveAmount", "liveHint", "liveClock", "liveState", "liveProgressBar", "liveProgress",
       "livePlanMinus", "livePlanPlus", "livePlanValue", "liveSaveDay", "livePlanRow",
       "liveStartInput", "liveStartReset", "liveOpenToggle",
@@ -330,6 +330,16 @@
     return Boolean(data.holidays && data.holidays[dateISO] === true);
   }
 
+  function isDayOff(dateISO) {
+    return Boolean(data.daysOff && data.daysOff[dateISO] === true);
+  }
+
+  function clearDayOff(dateISO) {
+    if (data.daysOff && data.daysOff[dateISO]) {
+      delete data.daysOff[dateISO];
+    }
+  }
+
   function isVacation(dateISO) {
     var vacations = data.vacations || [];
     for (var i = 0; i < vacations.length; i += 1) {
@@ -339,7 +349,7 @@
   }
 
   function isWorkDay(dateISO) {
-    if (isHoliday(dateISO) || isVacation(dateISO)) return false;
+    if (isHoliday(dateISO) || isVacation(dateISO) || isDayOff(dateISO)) return false;
     var weekday = dateFromISO(dateISO).getDay();
     return data.settings.workDays.indexOf(weekday) !== -1;
   }
@@ -444,6 +454,7 @@
       closed: closed,
       openEnd: isOpenEnd(dateISO),
       holiday: isHoliday(dateISO),
+      dayOff: isDayOff(dateISO),
       vacation: isVacation(dateISO),
       start: bounds.start,
       target: target,
@@ -542,6 +553,7 @@
       note = raw.note;
     }
 
+    clearDayOff(iso);
     data.days[iso] = {
       hours: round4(plan),
       km: round2(km),
@@ -625,7 +637,9 @@
 
     var stateText = "";
     if (snapshot.state === "off") {
-      stateText = i18n.t(snapshot.vacation ? "liveVacation" : (snapshot.holiday ? "liveHoliday" : "liveDayOff"));
+      stateText = i18n.t(snapshot.dayOff
+        ? "liveDayOffMarked"
+        : (snapshot.vacation ? "liveVacation" : (snapshot.holiday ? "liveHoliday" : "liveDayOff")));
     } else if (snapshot.state === "before") {
       stateText = i18n.t("liveStartsAt", { time: startTimeFor(dateISO) });
     } else if (snapshot.state === "finished") {
@@ -698,6 +712,7 @@
     if (!data.openEnds) data.openEnds = {};
     var turningOn = !isOpenEnd(iso);
     if (turningOn) {
+      clearDayOff(iso);
       data.openEnds[iso] = true;
       clearDayClosed(iso);
       autoSaveKey = null;
@@ -720,6 +735,7 @@
       next = Math.max(0, Math.min(24, Math.round((current + delta) * 4) / 4));
     }
     if (next === current) return;
+    clearDayOff(iso);
     data.plans[iso] = next;
     clearDayClosed(iso);
     autoSaveKey = null;
@@ -1005,8 +1021,14 @@
   function updateTodayEntryControls() {
     var iso = todayISO();
     var hasEntry = Boolean(getEntry(iso));
+    var off = isDayOff(iso);
     elements.todayDelete.hidden = !hasEntry;
     elements.todaySave.textContent = i18n.t(hasEntry ? "updateDay" : "saveDay");
+    elements.todayDayOff.textContent = i18n.t(off ? "undoDayOff" : "markDayOff");
+    elements.todayDayOff.setAttribute("aria-pressed", off ? "true" : "false");
+    elements.todayDayOff.classList.toggle("is-on", off);
+    elements.todayDayOffHint.textContent = i18n.t(off ? "dayOffStatus" : "markDayOffHint");
+    elements.todayDayOffHint.classList.toggle("is-on", off);
   }
 
   function fillTodayForm() {
@@ -1893,6 +1915,7 @@
     if (!entry) return;
     var iso = todayISO();
     var existed = Boolean(getEntry(iso));
+    clearDayOff(iso);
     data.days[iso] = entry;
     var saved = persist();
     fillTodayForm();
@@ -1911,6 +1934,52 @@
     ).then(function (confirmed) {
       if (!confirmed) return;
       if (removeDayEntry(iso)) toast(i18n.t("toastDeleted"));
+    });
+  }
+
+  function applyDayOff(iso) {
+    if (getEntry(iso)) delete data.days[iso];
+    if (data.plans) delete data.plans[iso];
+    if (data.openEnds) delete data.openEnds[iso];
+    if (data.starts) delete data.starts[iso];
+    clearDayClosed(iso);
+    if (!data.daysOff) data.daysOff = {};
+    data.daysOff[iso] = true;
+    autoSaveKey = null;
+    witnessedDate = iso;
+    persist();
+    fillTodayForm();
+    renderHistory();
+    renderMonth();
+    renderToday(false);
+    toast(i18n.t("dayOffMarkedToast"));
+  }
+
+  function toggleDayOff() {
+    var iso = todayISO();
+    if (isDayOff(iso)) {
+      clearDayOff(iso);
+      autoSaveKey = iso + ":" + planFor(iso);
+      persist();
+      renderToday(false);
+      renderHistory();
+      renderMonth();
+      toast(i18n.t("dayOffClearedToast"));
+      return;
+    }
+    var entry = getEntry(iso);
+    if (!entry) {
+      applyDayOff(iso);
+      return;
+    }
+    askConfirm(
+      i18n.t("dayOffConfirmTitle"),
+      i18n.t("dayOffConfirmMessage", {
+        hours: formatDuration(entry.hours) + " " + i18n.t("hourUnit")
+      }),
+      i18n.t("dayOffConfirmAction")
+    ).then(function (confirmed) {
+      if (confirmed) applyDayOff(iso);
     });
   }
 
@@ -1939,6 +2008,7 @@
     var wasAdding = addingDay;
     data.days[dateISO] = entry;
     if (dateISO === todayISO()) {
+      clearDayOff(dateISO);
       clearDayClosed(dateISO);
       autoSaveKey = dateISO + ":" + planFor(dateISO);
     }
@@ -2741,6 +2811,7 @@
 
     elements.todayForm.addEventListener("submit", saveToday);
     elements.todayDelete.addEventListener("click", deleteToday);
+    elements.todayDayOff.addEventListener("click", toggleDayOff);
     wirePreviewInputs("today");
 
     elements.historyGroups.addEventListener("click", function (event) {

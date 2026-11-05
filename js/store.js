@@ -69,6 +69,7 @@
       plans: {},
       closed: {},
       holidays: {},
+      daysOff: {},
       vacations: [],
       starts: {},
       openEnds: {},
@@ -198,6 +199,16 @@
         if (!isValidDateKey(holidayDate)) continue;
         if (input.holidays[holidayDate] !== true) continue;
         out.holidays[holidayDate] = true;
+      }
+    }
+
+    if (isPlainObject(input.daysOff)) {
+      var daysOffKeys = Object.keys(input.daysOff);
+      for (var d = 0; d < daysOffKeys.length; d += 1) {
+        var daysOffDate = daysOffKeys[d];
+        if (!isValidDateKey(daysOffDate)) continue;
+        if (input.daysOff[daysOffDate] !== true) continue;
+        out.daysOff[daysOffDate] = true;
       }
     }
 

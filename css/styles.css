@@ -1092,6 +1092,26 @@ input[type="time"] {
   margin-top: 12px;
 }
 
+.dayoff-btn {
+  margin-top: 16px;
+}
+
+.dayoff-btn.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.dayoff-hint {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.dayoff-hint.is-on {
+  color: var(--accent);
+  font-weight: 550;
+}
+
 .share-status {
   margin-top: 10px;
   font-weight: 550;

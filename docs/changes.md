@@ -1,5 +1,16 @@
 # Changes
 
+## v0.17.0 — 2026-11-05
+
+- Added a "Označi dan kao neradni" / "Mark day as non-working" toggle at the bottom of the Today tab, below the day form actions, with a hint line and `aria-pressed` state.
+- New `daysOff` map in the data schema (sanitized date keys, `true` values). `isDayOff()` is part of `isWorkDay()`, so the live plan becomes 0, the countdown says "Neradni dan", notifications are skipped (`planFor` returns 0) and nothing auto-saves.
+- Marking a day off removes an existing entry for that day (with a confirmation showing the hours that will be deleted), clears plan/start/open-end overrides and the closed flag, and leaves no row in History or in the Month breakdown.
+- The same button becomes "Poništi neradni dan" when marked; it removes the marker and restores the normal plan without re-adding the deleted entry. Saving hours afterwards clears the marker automatically, and `changePlanHours` / turning on open-end also clear it.
+- The live save button is hidden while the day is off; the marker is persisted on the device and survives reloads.
+- Guide section on working days mentions the new shortcut, and HR/EN strings are complete.
+- New browser suite `rs_dayoff_ui.py` (39 checks: marking saved/unsaved days, confirmation and cancel, removals from history/month, undo, reload persistence, saving afterwards, English labels, 320px layout).
+- Version bump to 0.17.0.
+
 ## v0.16.1 — 2026-11-02
 
 - Renamed the month report UI: the card is now "Izvještaj za obračun" (English "Report for payroll") and the button "Pošalji izvještaj" (English "Send report"), replacing "Izvještaj za šefa" / "Pošalji šefu" and "Report for the boss" / "Send to boss".
