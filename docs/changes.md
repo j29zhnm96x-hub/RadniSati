@@ -1,5 +1,18 @@
 # Changes
 
+## v0.18.0 — 2026-11-16
+
+- Opening the app at or after the scheduled end of the shift now closes the day by itself at the planned hours, even when the app was not opened during the shift. `maybeAutoSaveDay()` no longer requires the "shift witnessed" last-seen marker; `snapshot.state === "finished"` is enough.
+- The automatic close still skips open-ended days, days with a plan of 0 (non-working days, holidays, vacations, weekends) and any day that already has a manual entry (`entry.auto !== true`).
+- Removed the dead witness machinery (`witnessedDate`, `lastSeenWrite`, `LAST_SEEN_KEY`, `recordLastSeen()`, `wasShiftWitnessed()` and their assignments). The live tick and the live card now just call `maybeAutoSaveDay()` when the shift is over.
+- New `autoSkips` map in the schema (sanitized like `daysOff`). Deleting today's entry records a skip so the after-hours auto-close does not recreate it, even after a reload; saving hours by hand clears the skip again.
+- Saving the planned day by hand (`Spremi dan`, editor save, or the live save button) also clears a recorded skip.
+- Toast text is now "Dan automatski zatvoren · {hours} h" / "Day closed automatically · {hours} h".
+- New browser suite `rs_autoclose_ui.py` (46 checks: 16:05 and 23:00 opens, default kilometres, custom plan and start time, manual entry preserved, before-end opens, day off/holiday/vacation/weekend/zero plan skipped, open-ended skipped, delete + reload, manual save after delete, English text).
+- `isTodayFormDirty()` now compares kilometres instead of the derived travel cost, so the Today form is filled after an automatic close even when default kilometres are configured.
+- Rebuilt the `rs_smoke_ui.py` regression suite (24 checks: hours formats, km/travel, history, month, report copy, settings persistence, day off, language switch, 320px).
+- Version bump to 0.18.0.
+
 ## v0.17.0 — 2026-11-05
 
 - Added a "Označi dan kao neradni" / "Mark day as non-working" toggle at the bottom of the Today tab, below the day form actions, with a hint line and `aria-pressed` state.

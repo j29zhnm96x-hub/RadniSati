@@ -13,6 +13,15 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.18.0
+
+- **Dan se sada sam zatvara ako ga otvoriš pri kraju ili poslije radnog vremena.** Ako aplikaciju nisi otvorio ujutro, dovoljno je da je otvoriš nakon završetka smjene — upiše planirane sate (npr. 8:00) i zatvori dan, bez ručnog „Spremi dan“.
+- Vrijedi i za kraći plan (npr. 6 h) i za promijenjeno vrijeme početka (npr. 09:00), jer se kraj računa iz postavki tog dana.
+- **Ručni unos se nikada ne prepisuje.** Ako si dan već upisao ili uredio, ostaje točno kako jest.
+- Neradni dan, praznik, godišnji odmor, vikend i dan s planom 0 se preskaču, kao i dan s uključenim „Kraj nije poznat“.
+- Ako obrišeš automatski zatvoreni dan, **više se ne vraća sam** — ni nakon osvježavanja stranice. Ručno spremanje poništava tu zaštitu.
+- Poruka potvrđuje što se dogodilo: **„Dan automatski zatvoren · 8 h“**.
+
 ## What's new in 0.17.0
 
 - **Novi gumb na dnu taba Danas: „Označi dan kao neradni“.** Namijenjen danima kad se ne ide raditi — kiša, dogovor ili bilo što drugo.

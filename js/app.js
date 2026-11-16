@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.17.0";
+  var APP_VERSION = "0.18.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -18,9 +18,6 @@
   var liveTimer = null;
   var liveDate = null;
   var autoSaveKey = null;
-  var witnessedDate = null;
-  var lastSeenWrite = 0;
-  var LAST_SEEN_KEY = "radni-sati:last-seen";
   var THEME_DARK_KEY = "radni-sati:theme-dark";
   var themeTimer = null;
   var updateState = { available: null, statusKey: null, busy: false };
@@ -340,6 +337,17 @@
     }
   }
 
+  function skipAutoSave(dateISO) {
+    if (!data.autoSkips) data.autoSkips = {};
+    data.autoSkips[dateISO] = true;
+  }
+
+  function clearAutoSkip(dateISO) {
+    if (data.autoSkips && data.autoSkips[dateISO]) {
+      delete data.autoSkips[dateISO];
+    }
+  }
+
   function isVacation(dateISO) {
     var vacations = data.vacations || [];
     for (var i = 0; i < vacations.length; i += 1) {
@@ -490,39 +498,15 @@
     };
   }
 
-  function recordLastSeen(now) {
-    if (now.getTime() - lastSeenWrite < 20000) return;
-    lastSeenWrite = now.getTime();
-    try {
-      window.localStorage.setItem(LAST_SEEN_KEY, String(now.getTime()));
-    } catch (error) {
-      /* The countdown still works when storage is unavailable. */
-    }
-  }
-
-  function wasShiftWitnessed(now, bounds) {
-    if (witnessedDate === bounds.dateISO) return true;
-    var seen = 0;
-    try {
-      seen = Number(window.localStorage.getItem(LAST_SEEN_KEY));
-    } catch (error) {
-      seen = 0;
-    }
-    if (!isFinite(seen) || seen <= 0) return false;
-    var seenAt = new Date(seen);
-    if (isoFromDate(seenAt) !== bounds.dateISO) return false;
-    return seen >= bounds.start.getTime() && seen < bounds.end.getTime();
-  }
-
   function isTodayFormDirty(entry) {
     if (elements.todayForm.dataset.entryDate !== todayISO()) return true;
     var raw = readRawEntry("today");
     var baseHours = entry ? entry.hours : 0;
-    var baseTravel = entry ? entry.travel : 0;
+    var baseKm = entry ? kmForEntry(entry) : defaultKm();
     var baseOther = entry ? entry.other : 0;
     var baseNote = entry ? entry.note : "";
     return Math.abs(raw.hours - baseHours) > 0.0001 ||
-      Math.abs(raw.travel - baseTravel) > 0.0001 ||
+      Math.abs(raw.km - baseKm) > 0.0001 ||
       Math.abs(raw.other - baseOther) > 0.0001 ||
       raw.note !== baseNote;
   }
@@ -570,7 +554,7 @@
     if (snapshot.openEnd) return;
     if (snapshot.plan <= 0) return;
     var bounds = shiftBounds(now);
-    if (!wasShiftWitnessed(now, bounds)) return;
+    if (data.autoSkips && data.autoSkips[bounds.dateISO]) return;
     var key = bounds.dateISO + ":" + snapshot.plan;
     if (autoSaveKey === key) return;
 
@@ -583,7 +567,6 @@
     /* The shift is done: close the day right away so nothing is left to confirm. */
     if (!data.closed) data.closed = {};
     data.closed[bounds.dateISO] = true;
-    witnessedDate = bounds.dateISO;
     persist();
 
     if (isTodayFormDirty(entry)) {
@@ -610,7 +593,7 @@
     if (!data.closed) data.closed = {};
     data.closed[iso] = true;
     autoSaveKey = iso + ":" + hours;
-    witnessedDate = iso;
+    clearAutoSkip(iso);
     persist();
 
     fillTodayForm();
@@ -672,10 +655,7 @@
       ? i18n.t("liveDaySaved")
       : i18n.t("liveSavePlan", { hours: formatDuration(saveHours) });
 
-    if (snapshot.state === "running" || openEnd) {
-      witnessedDate = dateISO;
-      recordLastSeen(time);
-    } else if (snapshot.state === "finished") {
+    if (snapshot.state === "finished") {
       maybeAutoSaveDay(snapshot, time);
     }
   }
@@ -739,7 +719,6 @@
     data.plans[iso] = next;
     clearDayClosed(iso);
     autoSaveKey = null;
-    witnessedDate = iso;
     persist();
     renderLiveCard(new Date());
   }
@@ -757,10 +736,6 @@
     if (document.hidden) return;
 
     var snapshot = liveSnapshot(now);
-    if (snapshot.state === "running") {
-      witnessedDate = iso;
-      recordLastSeen(now);
-    }
     if (currentView === "today") {
       renderLiveCard(now);
     } else if (snapshot.state === "finished") {
@@ -1322,6 +1297,7 @@
     delete data.days[dateISO];
     if (dateISO === todayISO()) {
       clearDayClosed(dateISO);
+      skipAutoSave(dateISO);
       autoSaveKey = dateISO + ":" + planFor(dateISO);
     }
     var saved = persist();
@@ -1916,6 +1892,7 @@
     var iso = todayISO();
     var existed = Boolean(getEntry(iso));
     clearDayOff(iso);
+    clearAutoSkip(iso);
     data.days[iso] = entry;
     var saved = persist();
     fillTodayForm();
@@ -1946,7 +1923,6 @@
     if (!data.daysOff) data.daysOff = {};
     data.daysOff[iso] = true;
     autoSaveKey = null;
-    witnessedDate = iso;
     persist();
     fillTodayForm();
     renderHistory();
@@ -1959,6 +1935,7 @@
     var iso = todayISO();
     if (isDayOff(iso)) {
       clearDayOff(iso);
+      clearAutoSkip(iso);
       autoSaveKey = iso + ":" + planFor(iso);
       persist();
       renderToday(false);
@@ -2009,6 +1986,7 @@
     data.days[dateISO] = entry;
     if (dateISO === todayISO()) {
       clearDayOff(dateISO);
+      clearAutoSkip(dateISO);
       clearDayClosed(dateISO);
       autoSaveKey = dateISO + ":" + planFor(dateISO);
     }

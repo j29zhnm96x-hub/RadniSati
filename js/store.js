@@ -70,6 +70,7 @@
       closed: {},
       holidays: {},
       daysOff: {},
+      autoSkips: {},
       vacations: [],
       starts: {},
       openEnds: {},
@@ -209,6 +210,16 @@
         if (!isValidDateKey(daysOffDate)) continue;
         if (input.daysOff[daysOffDate] !== true) continue;
         out.daysOff[daysOffDate] = true;
+      }
+    }
+
+    if (isPlainObject(input.autoSkips)) {
+      var autoSkipKeys = Object.keys(input.autoSkips);
+      for (var a = 0; a < autoSkipKeys.length; a += 1) {
+        var autoSkipDate = autoSkipKeys[a];
+        if (!isValidDateKey(autoSkipDate)) continue;
+        if (input.autoSkips[autoSkipDate] !== true) continue;
+        out.autoSkips[autoSkipDate] = true;
       }
     }
 
