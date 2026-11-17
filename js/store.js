@@ -71,6 +71,7 @@
       holidays: {},
       daysOff: {},
       autoSkips: {},
+      dayDrafts: {},
       vacations: [],
       starts: {},
       openEnds: {},
@@ -220,6 +221,29 @@
         if (!isValidDateKey(autoSkipDate)) continue;
         if (input.autoSkips[autoSkipDate] !== true) continue;
         out.autoSkips[autoSkipDate] = true;
+      }
+    }
+
+    if (isPlainObject(input.dayDrafts)) {
+      var draftKeys = Object.keys(input.dayDrafts);
+      for (var dr = 0; dr < draftKeys.length; dr += 1) {
+        var draftDate = draftKeys[dr];
+        if (!isValidDateKey(draftDate)) continue;
+        var draft = input.dayDrafts[draftDate];
+        if (!isPlainObject(draft)) continue;
+        var draftHours = typeof draft.hours === "number" && isFinite(draft.hours) && draft.hours >= 0 && draft.hours <= 24
+          ? round4(draft.hours) : 0;
+        var draftKm = typeof draft.km === "number" && isFinite(draft.km) && draft.km >= 0 && draft.km <= 5000
+          ? round2(draft.km) : 0;
+        var draftOther = typeof draft.other === "number" && isFinite(draft.other) && draft.other >= 0 && draft.other <= 10000000
+          ? round2(draft.other) : 0;
+        var draftNote = typeof draft.note === "string" ? draft.note.slice(0, 500) : "";
+        out.dayDrafts[draftDate] = {
+          hours: draftHours,
+          km: draftKm,
+          other: draftOther,
+          note: draftNote
+        };
       }
     }
 

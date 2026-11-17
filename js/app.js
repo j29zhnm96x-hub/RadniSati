@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.18.0";
+  var APP_VERSION = "0.19.0";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
@@ -348,6 +348,41 @@
     }
   }
 
+  function draftFor(dateISO) {
+    return data.dayDrafts && data.dayDrafts[dateISO] ? data.dayDrafts[dateISO] : null;
+  }
+
+  function clearDraft(dateISO) {
+    if (data.dayDrafts && data.dayDrafts[dateISO]) {
+      delete data.dayDrafts[dateISO];
+      return true;
+    }
+    return false;
+  }
+
+  function saveTodayDraft() {
+    var iso = todayISO();
+    if (!data.dayDrafts) data.dayDrafts = {};
+    if (elements.todayForm.dataset.entryDate !== iso) return;
+    if (getEntry(iso)) {
+      if (clearDraft(iso)) persist();
+      return;
+    }
+    var raw = readRawEntry("today");
+    var clean = raw.hours === 0 && raw.km === defaultKm() && raw.other === 0 && raw.note === "";
+    if (clean) {
+      if (clearDraft(iso)) persist();
+      return;
+    }
+    data.dayDrafts[iso] = {
+      hours: raw.hours,
+      km: raw.km,
+      other: raw.other,
+      note: raw.note
+    };
+    persist();
+  }
+
   function isVacation(dateISO) {
     var vacations = data.vacations || [];
     for (var i = 0; i < vacations.length; i += 1) {
@@ -561,8 +596,13 @@
     var entry = getEntry(bounds.dateISO);
     if (entry && entry.auto !== true) return;
 
+    var raw = readRawEntry("today");
+    var dirty = isTodayFormDirty(entry);
+    var hours = dirty && raw.hours > 0 ? raw.hours : snapshot.plan;
+
     autoSaveKey = key;
-    if (!saveDayFromPlan(bounds.dateISO)) return;
+    if (!saveDayFromPlan(bounds.dateISO, dirty ? { hours: hours, fromForm: true } : null)) return;
+    clearDraft(bounds.dateISO);
 
     /* The shift is done: close the day right away so nothing is left to confirm. */
     if (!data.closed) data.closed = {};
@@ -594,6 +634,7 @@
     data.closed[iso] = true;
     autoSaveKey = iso + ":" + hours;
     clearAutoSkip(iso);
+    clearDraft(iso);
     persist();
 
     fillTodayForm();
@@ -1009,10 +1050,15 @@
   function fillTodayForm() {
     var iso = todayISO();
     var entry = getEntry(iso);
-    elements.todayHours.value = entry ? formatInputHours(entry.hours) : "";
-    elements.todayKm.value = formatInputNumber(kmForEntry(entry));
-    elements.todayOther.value = entry ? formatInputNumber(entry.other) : formatInputNumber(0);
-    elements.todayNote.value = entry ? entry.note : "";
+    var draft = entry ? null : draftFor(iso);
+    elements.todayHours.value = entry
+      ? formatInputHours(entry.hours)
+      : (draft && draft.hours > 0 ? formatInputHours(draft.hours) : "");
+    elements.todayKm.value = formatInputNumber(entry ? kmForEntry(entry) : (draft ? draft.km : defaultKm()));
+    elements.todayOther.value = entry
+      ? formatInputNumber(entry.other)
+      : formatInputNumber(draft ? draft.other : 0);
+    elements.todayNote.value = entry ? entry.note : (draft ? draft.note : "");
     elements.todayForm.dataset.entryDate = iso;
     clearFieldError(elements.todayHours, elements.todayHoursError);
     clearFieldError(elements.todayKm, elements.todayKmError);
@@ -1295,6 +1341,7 @@
   function removeDayEntry(dateISO) {
     if (!getEntry(dateISO)) return false;
     delete data.days[dateISO];
+    clearDraft(dateISO);
     if (dateISO === todayISO()) {
       clearDayClosed(dateISO);
       skipAutoSave(dateISO);
@@ -1893,6 +1940,7 @@
     var existed = Boolean(getEntry(iso));
     clearDayOff(iso);
     clearAutoSkip(iso);
+    clearDraft(iso);
     data.days[iso] = entry;
     var saved = persist();
     fillTodayForm();
@@ -1923,6 +1971,7 @@
     if (!data.daysOff) data.daysOff = {};
     data.daysOff[iso] = true;
     autoSaveKey = null;
+    clearDraft(iso);
     persist();
     fillTodayForm();
     renderHistory();
@@ -1987,6 +2036,7 @@
     if (dateISO === todayISO()) {
       clearDayOff(dateISO);
       clearAutoSkip(dateISO);
+      clearDraft(dateISO);
       clearDayClosed(dateISO);
       autoSaveKey = dateISO + ":" + planFor(dateISO);
     }
@@ -2791,6 +2841,9 @@
     elements.todayDelete.addEventListener("click", deleteToday);
     elements.todayDayOff.addEventListener("click", toggleDayOff);
     wirePreviewInputs("today");
+    ["todayHours", "todayKm", "todayOther", "todayNote"].forEach(function (id) {
+      elements[id].addEventListener("input", saveTodayDraft);
+    });
 
     elements.historyGroups.addEventListener("click", function (event) {
       var remove = event.target.closest("[data-delete]");
@@ -2988,6 +3041,13 @@
   function init() {
     cacheElements();
     data = store.load();
+    var staleDrafts = Object.keys(data.dayDrafts || {}).filter(function (dateISO) {
+      return dateISO < todayISO();
+    });
+    staleDrafts.forEach(function (dateISO) {
+      delete data.dayDrafts[dateISO];
+    });
+    if (staleDrafts.length) persist();
     try {
       /* Coordinates saved by 0.5.0 are no longer used or needed. */
       window.localStorage.removeItem("radni-sati:theme-location");

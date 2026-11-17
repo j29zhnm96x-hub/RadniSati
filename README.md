@@ -13,6 +13,15 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.19.0
+
+- **Kilometri koje upišeš ostaju za taj dan.** Ako prije kraja smjene upišeš svoju kilometražu, automatsko zatvaranje dana sada koristi **tvoj unos**, a ne zadanu kilometražu iz Postavki.
+- Ručno upisan kilometar **pamti se i nakon osvježavanja stranice** — ne moraš ga ponovno upisivati kad se dan zatvori.
+- Isto vrijedi za **ostale iznose i napomenu**: ako ih upišeš prije kraja, ostaju u danu.
+- Ako **ne diraš** polje kilometara, i dalje se koristi **zadana kilometraža** iz Postavki. Ako polje obrišeš, to znači **0 km** za taj dan.
+- Ako si upisao i sate, automatsko zatvaranje poštuje **tvoje sate** umjesto plana.
+- Nacrt se čisti kad spremiš dan, označiš ga neradnim ili kad se dan zatvori; nacrti starijih dana se automatski brišu.
+
 ## What's new in 0.18.0
 
 - **Dan se sada sam zatvara ako ga otvoriš pri kraju ili poslije radnog vremena.** Ako aplikaciju nisi otvorio ujutro, dovoljno je da je otvoriš nakon završetka smjene — upiše planirane sate (npr. 8:00) i zatvori dan, bez ručnog „Spremi dan“.

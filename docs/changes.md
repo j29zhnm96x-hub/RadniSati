@@ -1,5 +1,16 @@
 # Changes
 
+## v0.19.0 — 2026-11-17
+
+- Fixed: kilometres typed in the Today form before the shift ended were ignored by the automatic close, which fell back to the default kilometres from Settings. `maybeAutoSaveDay()` now checks `isTodayFormDirty()` and calls `saveDayFromPlan(iso, { hours, fromForm: true })`, so typed km, other amount, note and hours are what get saved.
+- Typed hours win over the plan when they are present; otherwise the plan is used as before.
+- New `dayDrafts` map in the schema (date keys, sanitized `{hours, km, other, note}`), written on input in the Today form while the day has no entry. `fillTodayForm()` prefers the draft over the default kilometres, so a manually entered value survives a reload before the end of the day.
+- Clearing the km field stores `0` in the draft, so an explicit empty value is not replaced by the default.
+- Drafts are cleared by a manual save, the live save button, marking the day as non-working, deleting the day and the automatic close. Drafts older than today are pruned on start.
+- An entry that already exists is never replaced by a draft; the draft is dropped instead.
+- New browser suite `rs_km_draft_ui.py` (31 checks: km before auto-close, reload, untouched default, typed hours, existing entry, cleared km, other/note, manual save, day off, pruning).
+- Version bump to 0.19.0.
+
 ## v0.18.0 — 2026-11-16
 
 - Opening the app at or after the scheduled end of the shift now closes the day by itself at the planned hours, even when the app was not opened during the shift. `maybeAutoSaveDay()` no longer requires the "shift witnessed" last-seen marker; `snapshot.state === "finished"` is enough.
