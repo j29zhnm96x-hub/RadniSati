@@ -311,6 +311,15 @@
     return out;
   }
 
+  function backupBrokenRaw(raw) {
+    if (typeof raw !== "string" || !raw) return;
+    try {
+      localStorage.setItem(KEY + ":recover", raw);
+    } catch (error) {
+      /* Nothing else can be done when storage is full. */
+    }
+  }
+
   function load() {
     lastLoadFailed = false;
     try {
@@ -319,11 +328,17 @@
       var parsed = JSON.parse(raw);
       var cleaned = sanitizeData(parsed);
       if (!cleaned) {
+        backupBrokenRaw(raw);
         lastLoadFailed = true;
         return defaults();
       }
       return cleaned;
     } catch (error) {
+      try {
+        backupBrokenRaw(localStorage.getItem(KEY));
+      } catch (ignored) {
+        /* Storage itself is unavailable. */
+      }
       lastLoadFailed = true;
       return defaults();
     }

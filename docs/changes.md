@@ -1,5 +1,12 @@
 # Changes
 
+## v0.19.1 — 2026-11-17
+
+- Data safety: when the stored JSON cannot be read (corrupt or unreadable), the raw value is copied to the `radni-sati:v1:recover` key **before** the app continues with defaults. Previously the next save (including the automatic close on open) could overwrite the only copy.
+- Added `rs_data_integrity_ui.py` (27 checks) with a realistic three-month history: legacy entries without `km`, auto entries, notes with diacritics, plans, closed flags, holidays, non-working days, auto-skips, vacations, start overrides, open ends and three rates. It verifies that every day and field loads unchanged, that history/month totals match, that opening after the shift adds exactly today and touches nothing else, and that corrupt data is copied to the recovery key.
+- No schema changes; existing data is read exactly as before.
+- Version bump to 0.19.1.
+
 ## v0.19.0 — 2026-11-17
 
 - Fixed: kilometres typed in the Today form before the shift ended were ignored by the automatic close, which fell back to the default kilometres from Settings. `maybeAutoSaveDay()` now checks `isTodayFormDirty()` and calls `saveDayFromPlan(iso, { hours, fromForm: true })`, so typed km, other amount, note and hours are what get saved.

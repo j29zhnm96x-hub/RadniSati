@@ -13,6 +13,13 @@ python -m http.server 8000
 
 Open `http://localhost:8000`.
 
+## What's new in 0.19.1
+
+- **Podaci su dodatno zaštićeni.** Ako se spremljeni podaci ikad ne mogu pročitati, aplikacija prije nastavka sprema **točnu kopiju** u rezervni ključ `radni-sati:v1:recover`, pa se izvorni podaci mogu vratiti.
+- Provjereno na realnoj povijesti od tri mjeseca: stari dani bez kilometara, automatski zatvoreni dani, napomene s dijakriticima, planovi, praznici, neradni dani, godišnji odmor, satnice — **sve se učitava nepromijenjeno**.
+- Automatsko zatvaranje dana dodaje **samo današnji dan** i ne dira nijedan raniji dan.
+- Nema promjena u strukturi podataka, pa je postojeća pohrana čitljiva kao i do sada.
+
 ## What's new in 0.19.0
 
 - **Kilometri koje upišeš ostaju za taj dan.** Ako prije kraja smjene upišeš svoju kilometražu, automatsko zatvaranje dana sada koristi **tvoj unos**, a ne zadanu kilometražu iz Postavki.

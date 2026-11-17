@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var APP_VERSION = "0.19.0";
+  var APP_VERSION = "0.19.1";
   var i18n = window.RSI18n;
   var store = window.RSStore;
 
